@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a14" />
+  <meta name="description" content="晴登雨讀｜2027 年 1 月 1 日麥樹仁山 O 型健行。10:40 內灣車站集合，附暫定行程、GPX 參考、交通與天氣連結。" />
+  <meta property="og:title" content="麥樹仁山 O 型｜晴登雨讀" />
+  <meta property="og:description" content="2027 元旦・從內灣車站走入山林，串聯麥樹仁山與南峰，再循老街繞回起點。現行參考班表與路況，行前再次確認。" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:type" content="website" />
+  <title>麥樹仁山 O 型｜晴登雨讀・2027 元旦</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&amp;family=Noto+Sans+TC:wght@300;400;500&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    :root {
+      --bg: #1a1a14;
+      --gold: #b8972a;
+      --cream: #f5f0e8;
+      --dim: rgba(245,240,232,0.7);
+      --card: #242420;
+      --moss: #5a6b3a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Noto Sans TC', 'Noto Sans CJK TC', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 2rem 6rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      color: var(--cream);
+      line-height: 1.15;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.6rem;
+      animation: fadeUp 1s ease both;
+    }
+
+    .hero-sub {
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      color: var(--dim);
+      letter-spacing: 0.12em;
+      line-height: 2.2;
+      animation: fadeUp 1s 0.2s ease both;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 0.7rem;
+    }
+
+    h2 {
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      font-weight: 900;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      color: var(--cream);
+      line-height: 1.3;
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
+    }
+
+    h2.alert { color: #c0392b; }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5.2rem;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(184,151,42,0.35) 5%, rgba(184,151,42,0.35) 95%, transparent);
+    }
+
+    .tl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.6rem;
+      padding: 0.8rem 0;
+      opacity: 0;
+      transform: translateX(-14px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .tl-item.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .tl-time {
+      min-width: 4.5rem;
+      font-size: 0.88rem;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      text-align: right;
+      padding-top: 0.15rem;
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+    }
+
+    .tl-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+      margin-top: 0.45rem;
+      box-shadow: 0 0 0 3px rgba(184,151,42,0.18);
+    }
+
+    .tl-text {
+      font-size: 0.96rem;
+      color: var(--dim);
+      line-height: 1.7;
+    }
+
+    .tl-text strong { color: var(--cream); }
+
+    /* ── CARDS ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    @media (max-width: 560px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(184,151,42,0.15);
+      border-radius: 6px;
+      padding: 1.5rem;
+    }
+
+    .card h3 {
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.8rem;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: var(--dim);
+      line-height: 1.8;
+      margin-bottom: 0.3rem;
+    }
+
+    .card a {
+      display: inline-block;
+      margin-top: 0.9rem;
+      font-size: 0.82rem;
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(184,151,42,0.35);
+      transition: color 0.2s;
+    }
+
+    .card a:hover { color: #d4a83a; }
+
+    /* ── MAP ── */
+    .route-map {
+      height: 420px;
+      border: 1px solid rgba(184,151,42,0.15);
+      border-radius: 6px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .route-map.leaflet-container {
+      background: var(--card);
+      font-family: 'Noto Sans TC', 'Noto Sans CJK TC', sans-serif;
+    }
+
+    @media (max-width: 560px) {
+      .route-map { height: 340px; }
+      .route-map .leaflet-control-attribution { font-size: 10px; }
+    }
+
+    .map-fallback {
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: var(--dim);
+    }
+
+    .time-pill span {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: nowrap;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: rgba(26,26,20,0.9);
+      border: 1px solid rgba(184,151,42,0.6);
+      color: var(--gold);
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      font-size: 12px;
+      line-height: 1.6;
+      letter-spacing: 0.04em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      cursor: pointer;
+    }
+
+    .time-pill.r span { transform: translate(10px, -50%); }
+
+    .time-pill.start span {
+      background: var(--cream);
+      border-color: var(--gold);
+      color: var(--bg);
+      font-weight: 600;
+    }
+
+    .route-map .leaflet-popup-content-wrapper,
+    .route-map .leaflet-popup-tip {
+      background: var(--card);
+      color: var(--cream);
+      box-shadow: 0 3px 14px rgba(0,0,0,0.5);
+    }
+
+    .route-map .leaflet-popup-content-wrapper {
+      border: 1px solid rgba(184,151,42,0.3);
+      border-radius: 6px;
+    }
+
+    .route-map .leaflet-popup-content {
+      margin: 10px 18px 10px 12px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .route-map .leaflet-popup-content .t {
+      color: var(--gold);
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      margin-right: 0.5em;
+    }
+
+    .route-map a.leaflet-popup-close-button { color: var(--dim); }
+
+    /* ── GEAR ── */
+    .gear-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 0.8rem;
+      list-style: none;
+    }
+
+    .gear-list li {
+      background: var(--card);
+      border-left: 3px solid var(--moss);
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: var(--dim);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── WEATHER CARD ── */
+    .weather-card {
+      background: var(--card);
+      border: 1px solid rgba(184,151,42,0.15);
+      border-radius: 6px;
+      padding: 1.8rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+      flex-wrap: wrap;
+    }
+
+    .weather-icon { font-size: 2.8rem; }
+
+    .weather-info h3 {
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      color: var(--cream);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .weather-info a {
+      font-size: 0.82rem;
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(184,151,42,0.35);
+    }
+
+    /* ── JOIN ── */
+    .join {
+      text-align: center;
+      padding: 5rem 2rem;
+    }
+
+    .join h2 { margin-bottom: 2rem; }
+
+    .join-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--bg);
+      font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      padding: 1rem 2.8rem;
+      border-radius: 4px;
+      text-decoration: none;
+      line-height: 1.8;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .join-btn:hover {
+      background: #d4a83a;
+      transform: translateY(-2px);
+    }
+
+    /* ── RULE ── */
+    .rule {
+      height: 1px;
+      background: rgba(184,151,42,0.15);
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+  
+    /* 麥樹仁山活動頁補充樣式；原始版型保留。 */
+    html { scroll-behavior: smooth; }
+    a { color: var(--gold); text-underline-offset: 0.25em; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 2px solid var(--gold); outline-offset: 5px;
+    }
+    strong { color: var(--cream); }
+    .hero { min-height: 90vh; min-height: 90svh; padding-top: 5rem; }
+    .hero-date { color: var(--gold); letter-spacing: 0.18em; font-size: 0.85rem; margin-bottom: 2rem; }
+    .hero-route { display: block; color: var(--cream); font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif; font-size: clamp(1.65rem, 4vw, 2.35rem); font-weight: 600; letter-spacing: 0.07em; margin-bottom: 0.45rem; }
+    .hero-sub { line-height: 1.9; }
+    .hero-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.7rem 1.4rem; margin-top: 2rem; }
+    .hero-nav a { font-size: 0.8rem; color: var(--gold); text-decoration: none; padding: 0.35rem 0; border-bottom: 1px solid rgba(184,151,42,0.3); }
+    .lead { color: var(--dim); line-height: 1.95; font-size: 0.96rem; margin-bottom: 1.8rem; }
+    .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.8rem; margin: 1.6rem 0 1rem; }
+    .stat { background: var(--card); border-top: 1px solid rgba(184,151,42,0.4); padding: 1.3rem 0.9rem; text-align: center; }
+    .stat dt { color: var(--dim); font-size: 0.76rem; letter-spacing: 0.08em; margin-bottom: 0.7rem; }
+    .stat dd { color: var(--cream); font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif; font-size: 1.6rem; line-height: 1.2; font-weight: 600; }
+    .stat dd small { font-family: 'Noto Sans TC', 'Noto Sans CJK TC', sans-serif; color: var(--gold); font-size: 0.7rem; font-weight: 400; }
+    .note { color: var(--dim); font-size: 0.82rem; line-height: 1.9; }
+    .note + .note { margin-top: 0.5rem; }
+    .notice { border-left: 3px solid var(--gold); padding: 0.95rem 1.15rem; background: rgba(184,151,42,0.06); color: var(--dim); font-size: 0.86rem; line-height: 1.9; margin: 1.6rem 0; }
+    .notice strong { display: block; margin-bottom: 0.15rem; }
+    .route-summary { padding: 1.4rem; border: 1px solid rgba(184,151,42,0.18); border-radius: 6px; color: var(--cream); font-size: 0.94rem; line-height: 2; margin: 1.5rem 0; }
+    .section h2 { margin-bottom: 1.4rem; }
+    .tl-item { gap: 1rem; }
+    .timeline::before { left: 5.7rem; }
+    .tl-time { min-width: 4.5rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tl-dot { position: relative; z-index: 1; }
+    .tl-text { flex: 1; min-width: 0; }
+    .tl-text small { display: block; color: var(--dim); font-size: 0.8rem; line-height: 1.8; margin-top: 0.15rem; }
+    .table-wrap { width: 100%; overflow-x: auto; margin: 1.2rem 0; border: 1px solid rgba(184,151,42,0.18); border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 0.88rem; line-height: 1.7; }
+    caption { text-align: left; background: var(--card); color: var(--cream); padding: 1rem; font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif; font-size: 1rem; font-weight: 600; }
+    th, td { padding: 0.85rem 1rem; text-align: left; border-top: 1px solid rgba(184,151,42,0.14); }
+    th { color: var(--gold); font-weight: 500; white-space: nowrap; }
+    td { color: var(--dim); }
+    td b { color: var(--cream); font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .card-grid { margin-top: 1.3rem; }
+    .card h3 { line-height: 1.6; }
+    .card .tag { color: var(--gold); font-size: 0.75rem; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
+    details { margin-top: 1.2rem; padding: 1.1rem 1.3rem; background: var(--card); border: 1px solid rgba(184,151,42,0.15); border-radius: 6px; }
+    summary { color: var(--cream); cursor: pointer; font-size: 0.9rem; line-height: 1.7; }
+    details p { margin-top: 0.85rem; }
+    .action-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 1.1rem 0; }
+    .action { display: inline-flex; align-items: center; justify-content: center; font: inherit; font-size: 0.82rem; line-height: 1.6; background: var(--card); color: var(--gold); border: 1px solid rgba(184,151,42,0.4); border-radius: 4px; padding: 0.6rem 0.95rem; cursor: pointer; text-decoration: none; }
+    .action:hover { background: #303027; }
+    .action:disabled { opacity: 0.4; cursor: default; }
+    .file-control { position: relative; }
+    .file-control input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .file-control:focus-within { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .route-map { position: relative; height: 400px; }
+    .map-fallback { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1rem; background: var(--card); padding: 1.5rem; }
+    .map-fallback .station-glyph { width: 54px; height: 54px; border: 1px solid var(--gold); border-radius: 50%; display: grid; place-items: center; font-size: 1.4rem; }
+    .map-fallback h3 { font-family: 'Noto Serif TC', 'Noto Serif CJK TC', serif; color: var(--cream); font-size: 1.3rem; }
+    .map-fallback p { max-width: 28rem; color: var(--dim); font-size: 0.85rem; line-height: 1.9; }
+    .map-svg { display: block; width: 100%; height: 100%; background: var(--card); }
+    .map-status { min-height: 1.6em; }
+    .map-status[data-error="true"] { color: #ecaa85; }
+    .weather-info { flex: 1; min-width: 0; }
+    .weather-info h3 { line-height: 1.7; }
+    .weather-info a { display: inline-block; margin: 0.35rem 1rem 0 0; line-height: 1.8; }
+    h2.alert { color: #d68e73; }
+    .join { padding-top: 4rem; }
+    .join p { margin: 1.25rem 0 0; color: var(--dim); font-size: 0.82rem; }
+    .footer { max-width: 820px; margin: 0 auto; padding: 0 2rem 2.5rem; text-align: center; color: var(--dim); font-size: 0.73rem; line-height: 1.9; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; margin-top: 0.8rem; }
+    .source-links a { font-size: 0.8rem; }
+    /* Content remains visible without JavaScript or blocked third-party resources. */
+    .reveal, .tl-item { opacity: 1; transform: none; }
+    .animating .reveal:not(.visible) { opacity: 0; transform: translateY(18px); }
+    .animating .tl-item:not(.visible) { opacity: 0; transform: translateX(-14px); }
+    @media (max-width: 560px) {
+      .hero { min-height: 78svh; padding: 4rem 1.25rem; }
+      .hero-date { font-size: 0.74rem; letter-spacing: 0.12em; }
+      .hero h1 { letter-spacing: 0.04em; }
+      .hero-sub { font-size: 0.84rem; letter-spacing: 0.07em; }
+      .section { padding: 3rem 1.25rem; }
+      .stats { gap: 0.45rem; }
+      .stat { padding: 1rem 0.3rem; }
+      .stat dd { font-size: 1.3rem; }
+      .stat dt { font-size: 0.67rem; letter-spacing: 0; }
+      .tl-item { gap: 0.65rem; }
+      .tl-time { min-width: 4rem; font-size: 0.8rem; }
+      .timeline::before { left: 4.84rem; }
+      .tl-text { font-size: 0.89rem; }
+      .route-map { height: 340px; }
+      .weather-card { padding: 1.3rem; gap: 1rem; }
+      .join-btn { padding: 1rem 1.6rem; font-size: 0.98rem; }
+      .action-row { gap: 0.5rem; }
+      .action { padding: 0.65rem 0.8rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .animating .reveal, .animating .tl-item { opacity: 1 !important; transform: none !important; }
+    }
+    @media print {
+      body { background: white; color: #222; }
+      :root { --cream: #111; --dim: #333; --card: #f3f3f0; --gold: #715719; }
+      .hero { min-height: auto; padding: 1rem 0 2rem; }
+      .hero-nav, .map-tools { display: none; }
+      .section, .join { padding: 1.5rem 0; }
+      .reveal, .tl-item { opacity: 1 !important; transform: none !important; }
+      .table-wrap { overflow: visible; }
+      .card, tr { break-inside: avoid; }
+    }
+
+    /* 地形圖版面：沿用參考截圖的金色標題、紅色路線與起終點標籤。 */
+    .map-frame { position: relative; }
+    #route-map { height: 420px; }
+    .map-toolbar { position: absolute; left: 10px; bottom: 28px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 5px; max-width: calc(100% - 20px); }
+    .map-tool { position: relative; display: inline-flex; align-items: center; min-height: 30px; border: 1px solid rgba(0,0,0,0.24); border-radius: 4px; background: rgba(255,255,255,0.95); color: #292920; padding: 4px 9px; font: 12px/1.55 'Noto Sans TC','Noto Sans CJK TC',sans-serif; box-shadow: 0 1px 5px rgba(0,0,0,0.18); cursor: pointer; }
+    .map-tool:hover { background: #fff; }
+    .map-tool[hidden] { display: none; }
+    .map-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .map-upload:focus-within { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .map-caption { margin-top: 0.65rem; min-height: 0; color: var(--dim); font-size: 0.74rem; line-height: 1.8; }
+    .map-caption:empty { display: none; }
+    .route-map .leaflet-control-layers { color: #242420; font-family: 'Noto Sans TC','Noto Sans CJK TC',sans-serif; }
+    .route-map .leaflet-control-layers label { display: block; line-height: 1.8; }
+    .route-map .leaflet-control-layers label span { color: #242420; }
+    .route-map .leaflet-control-zoom a { color: #151515; }
+    .route-map .leaflet-control-attribution { color: #333; background: rgba(255,255,255,0.82); line-height: 1.45; }
+    .route-map .leaflet-control-attribution a { color: #0078a8; }
+    .route-map .leaflet-tooltip.route-start-label { background: rgba(245,240,232,0.98); border: 1px solid var(--gold); border-radius: 999px; color: #1a1a14; box-shadow: 0 1px 4px rgba(0,0,0,0.25); padding: 2px 10px; font: 600 12px/1.6 'Noto Serif TC','Noto Serif CJK TC',serif; }
+    .route-map .leaflet-tooltip-right.route-start-label:before { display: none; }
+    .map-svg text { font-family: 'Noto Sans TC','Noto Sans CJK TC',sans-serif; }
+    @media (max-width: 560px) {
+      #route-map { height: 340px; }
+      .map-toolbar { bottom: 38px; }
+      .map-tool { font-size: 11px; min-height: 30px; padding: 4px 7px; }
+    }
+    @media print { .map-toolbar { display: none; } }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <h1>晴登雨讀</h1>
+    <p class="hero-sub"><span class="hero-route">麥樹仁山 O 型</span>從內灣車站走入山林，串聯麥樹仁山與南峰，再循老街繞回起點。</p>
+  </header>
+
+  <div class="rule"></div>
+  <main>
+  <section class="section reveal" id="itinerary" aria-labelledby="itinerary-title">
+    <div class="section-label">行程規劃</div>
+    <h2 id="itinerary-title">2027年1月1日（五）</h2>
+    <!-- Source: uploaded GPX recorded 2023-03-07, Asia/Taipei. Timing uses GPX <time>, not the clock text in names. -->
+    <!-- Original track: 07:24:35–12:50:54 (5:26:19). First two summit marks at 10:19:01/10:19:25 are combined. -->
+    <div class="timeline">
+      <div class="tl-item">
+        <time class="tl-time" datetime="2027-01-01T10:40+08:00">10:40</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>內灣車站集合</strong><small>整理裝備，準備出發。</small></div>
+      </div>
+      <div class="tl-item">
+        <time class="tl-time" datetime="2027-01-01T10:45+08:00">10:45</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>內灣車站出發</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="1" data-source-name="涼亭早餐7:58)" data-source-time="2023-03-07T07:58:15+08:00">
+        <time class="tl-time" datetime="2027-01-01T11:19+08:00">11:19</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>涼亭</strong><small>GPX 原註記「涼亭早餐」。</small></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="2" data-source-name="麥樹仁山登山口8:32)" data-source-time="2023-03-07T08:32:37+08:00">
+        <time class="tl-time" datetime="2027-01-01T11:53+08:00">11:53</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>麥樹仁山登山口</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="3" data-source-name="福德正神9:18)" data-source-time="2023-03-07T09:18:06+08:00">
+        <time class="tl-time" datetime="2027-01-01T12:39+08:00">12:39</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>福德正神</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="4" data-source-name="賣樹仁山三叉路10:00)" data-source-time="2023-03-07T09:59:06+08:00">
+        <time class="tl-time" datetime="2027-01-01T13:20+08:00">13:20</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>三叉路</strong><small>GPX 原名「賣樹仁山三叉路」。</small></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="5" data-source-name="麥樹仁山)" data-source-time="2023-03-07T10:19:01+08:00">
+        <time class="tl-time" datetime="2027-01-01T13:39+08:00">13:39</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>麥樹仁山</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="7" data-source-name="麥樹仁南峰10:50)" data-source-time="2023-03-07T10:47:41+08:00">
+        <time class="tl-time" datetime="2027-01-01T14:08+08:00">14:08</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>麥樹仁南峰</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="8" data-source-name="下切尖石國中1056)" data-source-time="2023-03-07T10:55:06+08:00">
+        <time class="tl-time" datetime="2027-01-01T14:16+08:00">14:16</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>下切尖石國中</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="9" data-source-name="產業道路三叉路)" data-source-time="2023-03-07T11:16:00+08:00">
+        <time class="tl-time" datetime="2027-01-01T14:36+08:00">14:36</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>產業道路三叉路</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="10" data-source-name="午餐11:40)" data-source-time="2023-03-07T11:37:04+08:00">
+        <time class="tl-time" datetime="2027-01-01T14:57+08:00">14:57</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>原 GPX 午餐點</strong><small>原作者標記的用餐位置，不是指定本次午餐時間。</small></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="11" data-source-name="尖石國中11:43)" data-source-time="2023-03-07T11:49:34+08:00">
+        <time class="tl-time" datetime="2027-01-01T15:10+08:00">15:10</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>尖石國中</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="12" data-source-name="尖石土地公12:00)" data-source-time="2023-03-07T11:58:26+08:00">
+        <time class="tl-time" datetime="2027-01-01T15:19+08:00">15:19</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>尖石土地公</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="13" data-source-name="北角吊橋12:13)" data-source-time="2023-03-07T12:13:13+08:00">
+        <time class="tl-time" datetime="2027-01-01T15:34+08:00">15:34</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>北角吊橋</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="14" data-source-name="義興大橋12:30)" data-source-time="2023-03-07T12:29:00+08:00">
+        <time class="tl-time" datetime="2027-01-01T15:49+08:00">15:49</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>義興大橋</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="15" data-source-name="內灣老街12:47)" data-source-time="2023-03-07T12:47:33+08:00">
+        <time class="tl-time" datetime="2027-01-01T16:08+08:00">16:08</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>內灣老街</strong></div>
+      </div>
+      <div class="tl-item" data-gpx-waypoint="16" data-source-name="內灣車站12:50結束)" data-source-time="2023-03-07T12:50:54+08:00">
+        <time class="tl-time" datetime="2027-01-01T16:11+08:00">16:11</time><span class="tl-dot" aria-hidden="true"></span>
+        <div class="tl-text"><strong>返回內灣車站</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+  <section class="section reveal" id="map-section" aria-labelledby="map-title">
+    <div class="section-label" id="map-title">路線地圖</div>
+    <div class="map-frame">
+      <div id="route-map" class="route-map" role="region" aria-label="麥樹仁山 O 型地形圖" tabindex="0">
+        <div class="map-fallback">
+          <span class="station-glyph" aria-hidden="true">🚉</span>
+          <h3>內灣車站</h3>
+          <p>10:40 集合・起終點</p>
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=%E5%85%A7%E7%81%A3%E8%BB%8A%E7%AB%99" class="action" target="_blank" rel="noopener noreferrer">開啟車站地圖 →</a>
+          <p id="map-loading-text">正在載入地形圖…</p>
+        </div>
+      </div>
+      <div class="map-toolbar" aria-label="GPX 航跡工具">
+        <label class="map-tool map-upload" title="匯入本機 GPX，顯示紅色航跡">匯入 GPX
+          <input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" aria-label="匯入 GPX 航跡檔" />
+        </label>
+        <button class="map-tool" id="map-fit" type="button" hidden>全覽</button>
+        <button class="map-tool" id="map-reset" type="button" hidden>清除</button>
+        <button class="map-tool" id="map-save" type="button" hidden>另存含航跡網頁</button>
+      </div>
+    </div>
+    <p id="map-status" class="map-status map-caption" role="status" aria-live="polite"></p>
+    <script id="route-data" type="application/json">{"segments":[[[24.705214068605834,121.18254789267168],[24.705211012522582,121.18255326251898],[24.705215121276968,121.18254558559038],[24.705215121276968,121.18254558559038],[24.705215121276968,121.18254558559038],[24.70520009124134,121.18254238477249],[24.705202395771792,121.18254508703512],[24.705193700564877,121.18256493179004],[24.70518352367455,121.1825786822109],[24.70515227819109,121.18257087531097],[24.705126306531525,121.18257875406032],[24.705098346033353,121.18262228428613],[24.705062568596954,121.18266279020355],[24.70502367934194,121.18270429399722],[24.704980777106915,121.18271930862154],[24.704897339516936,121.18274077938463],[24.70483171506154,121.18277851422225],[24.704770048450747,121.18279455375378],[24.704744120452,121.18284805836224],[24.70474112639036,121.18286881218457],[24.70474112639036,121.18286881218457],[24.704744598839614,121.18286019161197],[24.70473598731506,121.18286652533996],[24.7047015555916,121.18287523962138],[24.704658571863174,121.1828755109172],[24.7046012937632,121.18286049037414],[24.704528361945933,121.18289266304943],[24.704470860523042,121.18291351958074],[24.704421313776248,121.18293958575768],[24.704359962893424,121.18295703196794],[24.704279853320834,121.18295878276207],[24.70420849314811,121.182970341252],[24.704151530761205,121.18300606058811],[24.704076405946942,121.18303755439246],[24.70399369764434,121.18306651454648],[24.703933569555538,121.18310467771425],[24.70387385036686,121.18313570105803],[24.70381847406514,121.1831777514766],[24.703765899869534,121.18323983214295],[24.70372381778942,121.18326625809489],[24.703738555634615,121.18328048438431],[24.703704582342937,121.18326442833818],[24.70369362473352,121.18325534099932],[24.70369603851985,121.18326008731898],[24.703704511596126,121.18326633719789],[24.703712073588807,121.18326378798601],[24.703715294982082,121.18326495796019],[24.703705766484042,121.18326991307394],[24.70371348747958,121.18326265666812],[24.70370068295433,121.18329460225038],[24.70370068295433,121.18329460225038],[24.70370068295433,121.18329460225038],[24.703699769730886,121.18333427584024],[24.703694140922305,121.18331337942516],[24.703696429813306,121.18330529639825],[24.703700467970048,121.18329545758331],[24.70371265539736,121.18330985149375],[24.703707021919655,121.18330113751476],[24.70370907594238,121.18330194103414],[24.703705939878297,121.18330630450033],[24.70369813909792,121.18328886054603],[24.703700826825262,121.18328358640667],[24.703700826825262,121.18328358640667],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703686579583533,121.18326805679474],[24.703700410699735,121.18330063276711],[24.703706003986653,121.18328977805191],[24.703706003986653,121.18328977805191],[24.703710130023335,121.1832771286193],[24.70370831092877,121.18327871660571],[24.70370865575584,121.18328093729872],[24.70367974574081,121.18329625683347],[24.70368727414597,121.18330911331113],[24.70368727414597,121.18330911331113],[24.70368727414597,121.18330911331113],[24.70368727414597,121.18330911331113],[24.70368727414597,121.18330911331113],[24.703736818469828,121.18332937124956],[24.703746248139105,121.18332021728307],[24.703746248139105,121.18332021728307],[24.703746248139105,121.18332021728307],[24.703746248139105,121.18332021728307],[24.703740100474306,121.18331428750211],[24.7037289393114,121.18329474430284],[24.703728796355158,121.18328565407006],[24.703714488608888,121.183286365411],[24.703698947716806,121.18328356962085],[24.703711398381458,121.18327286072955],[24.703708288084933,121.1832704861703],[24.703702313029403,121.18327497077874],[24.703699728647017,121.1832799305508],[24.70370196952498,121.18328742215148],[24.70370137607227,121.18330537091205],[24.703712704434118,121.18330086987297],[24.70372234058191,121.18329987693377],[24.703729831843894,121.18328102193033],[24.70371673425464,121.18327469211717],[24.70372142692724,121.18329715933837],[24.703717174717244,121.18328939584741],[24.70367515862549,121.18330839208295],[24.703685790891264,121.18333534629063],[24.703702797109113,121.18337596339566],[24.703741266710004,121.18343622211222],[24.70376858491011,121.18347191342102],[24.703791561871032,121.18352431480523],[24.703814351123842,121.18354671629093],[24.703874598519437,121.18356404268486],[24.703936789704716,121.18357682065734],[24.70400027111243,121.18356566372847],[24.70405017384845,121.18354314635853],[24.704076924805186,121.18351732644072],[24.70407961689992,121.18351673278879],[24.70408558174607,121.18351058111976],[24.70408207807966,121.18352404359865],[24.70407515679231,121.18352376235026],[24.7041075883646,121.18350416076201],[24.70414984371901,121.18348497342339],[24.704168253184925,121.18344465106708],[24.70421356927051,121.18340131523297],[24.70425297475106,121.18335339562374],[24.704301032364114,121.18331324510656],[24.704343248308472,121.18329749043754],[24.704377953446777,121.18329517725033],[24.704427132552485,121.1832964063907],[24.704504661776934,121.18329571179811],[24.704559788456436,121.18328543643844],[24.704602008473245,121.1832597699596],[24.70466891105136,121.18323330163477],[24.704737743510645,121.18320352064774],[24.704825075191028,121.18319342624035],[24.7048707173875,121.18319857273468],[24.704912449636748,121.1832175154432],[24.704948102537717,121.18322931147107],[24.70497799103235,121.18321697296693],[24.70503442730295,121.18321650945829],[24.70506097896486,121.1832755523758],[24.705081607812442,121.18329703293539],[24.705113802963226,121.18329948498769],[24.705148805988035,121.18326933799948],[24.705194325027662,121.18331403930534],[24.705219231662028,121.18336568900847],[24.70525570778059,121.183395025861],[24.705278563593545,121.18344343523084],[24.705300408799257,121.18346839881669],[24.705328376814286,121.18349190956218],[24.7053462703558,121.1835345147881],[24.705351849971134,121.18358179655232],[24.705317007147947,121.18359574019065],[24.705292235127065,121.18363807608831],[24.705304355658388,121.1836687739759],[24.70530030347589,121.18369766285753],[24.70531333482787,121.18371624954948],[24.705321207101974,121.18372646531834],[24.705332206660618,121.18374442485434],[24.705361083338378,121.18375579392001],[24.705366605594836,121.1837932795415],[24.705376979956842,121.18381490279828],[24.705400872692096,121.18383570817275],[24.70542779873995,121.18385639260268],[24.70547425444605,121.18386149593786],[24.70552486828689,121.18385781763762],[24.70558161571593,121.1838837992795],[24.70562074703299,121.18388907019592],[24.705652912636456,121.18389205038604],[24.705685811031845,121.18388476024883],[24.705717669814593,121.18388662820915],[24.705745825396196,121.18390389134679],[24.705768005051244,121.18392149230023],[24.705808369752532,121.18395361751527],[24.70583881300463,121.18396622053102],[24.705862229124282,121.18397430711714],[24.705878917125627,121.18397591255334],[24.705906044962028,121.18398530403367],[24.705918110684564,121.18397446512903],[24.70593618532555,121.18399868116622],[24.705961856291225,121.1840239927942],[24.70596273430585,121.18405808363826],[24.70600056611106,121.18404772620679],[24.706055585451082,121.18403140661346],[24.706109386035852,121.18401015528063],[24.706155199565792,121.18400749345888],[24.70620239492058,121.1839973651118],[24.706259399269392,121.18397695022591],[24.706296634995137,121.18395294316407],[24.706350377529095,121.18391234642438],[24.706400556479796,121.18388539262519],[24.706454810361286,121.1838691964122],[24.706507009754564,121.1838608411948],[24.70658430246271,121.18382996251803],[24.7066300182863,121.18379265209737],[24.706683039560158,121.18374282990649],[24.706714236165322,121.18368747630322],[24.70673972438714,121.18362807320511],[24.7067741435839,121.18354178669489],[24.70678327828499,121.18347095102155],[24.70679348018715,121.18340372002419],[24.706800653483104,121.18336803495063],[24.706796837650323,121.18334457926443],[24.70679831034028,121.18335905050132],[24.706795374465393,121.18337690806517],[24.70679422468931,121.18337171339205],[24.706773895843277,121.18335994024984],[24.706773895843277,121.18335994024984],[24.706773895843277,121.18335994024984],[24.706773895843277,121.18335994024984],[24.706773895843277,121.18335994024984],[24.70677435399816,121.18327256232243],[24.70677435399816,121.18327256232243],[24.70677435399816,121.18327256232243],[24.70677435399816,121.18327256232243],[24.706810465357467,121.18324978948526],[24.706810465357467,121.18324978948526],[24.706810465357467,121.18324978948526],[24.706726246380953,121.18330855314527],[24.706768385396273,121.18331623642368],[24.706768385396273,121.18331623642368],[24.706768385396273,121.18331623642368],[24.706768385396273,121.18331623642368],[24.706768385396273,121.18331623642368],[24.706768385396273,121.18331623642368],[24.706789294130488,121.18332320447344],[24.706789294130488,121.18332320447344],[24.706789294130488,121.18332320447344],[24.706789294130488,121.18332320447344],[24.706789294130488,121.18332320447344],[24.70677529996844,121.1833321479834],[24.706775550113825,121.18333220962803],[24.706775550113825,121.18333220962803],[24.706775550113825,121.18333220962803],[24.70675660834685,121.18327289344964],[24.706757043892182,121.18327268918117],[24.706757043892182,121.18327268918117],[24.706757043892182,121.18327268918117],[24.706757043892182,121.18327268918117],[24.706774188489398,121.18329259860353],[24.70677413248626,121.18329254573301],[24.70677413248626,121.18329254573301],[24.706737330104495,121.1833164068238],[24.706738689584135,121.18331459768783],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706764291684028,121.1833158386554],[24.706856701244508,121.18330797231972],[24.706822258183454,121.18334565260022],[24.706822258183454,121.18334565260022],[24.706827484791727,121.18339720771186],[24.706827484791727,121.18339720771186],[24.706827484791727,121.18339720771186],[24.706827484791727,121.18339720771186],[24.706827484791727,121.18339720771186],[24.706827484791727,121.18339720771186],[24.706813274804745,121.18334215903295],[24.706813274804745,121.18334215903295],[24.706813274804745,121.18334215903295],[24.706813274804745,121.18334215903295],[24.706832714271286,121.18334881526921],[24.706832714271286,121.18334881526921],[24.706832714271286,121.18334881526921],[24.706855579063358,121.18333251963949],[24.706852641612933,121.18333044183434],[24.706850986426762,121.18333529004649],[24.706850986426762,121.18333529004649],[24.706850986426762,121.18333529004649],[24.706850986426762,121.18333529004649],[24.706857068210866,121.18336507086039],[24.706857068210866,121.18336507086039],[24.706857068210866,121.18336507086039],[24.706857068210866,121.18336507086039],[24.706878860391534,121.18335254515372],[24.706844446296103,121.18332149240307],[24.706844446296103,121.18332149240307],[24.706920701984302,121.18335170646853],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706920788342725,121.18335184019094],[24.706832895793177,121.18330351427952],[24.7068241946902,121.18323821446272],[24.706830669929698,121.18323053793647],[24.70682920836516,121.18324472995674],[24.706816601716838,121.18323738264382],[24.706829986815976,121.183224242372],[24.706829986815976,121.183224242372],[24.706829986815976,121.183224242372],[24.706799012844485,121.18328704357133],[24.706816635266623,121.1833288217967],[24.706816635266623,121.1833288217967],[24.706816635266623,121.1833288217967],[24.706816842533392,121.18330589645831],[24.706816842533392,121.18330589645831],[24.706816842533392,121.18330589645831],[24.706786044501687,121.18333549270487],[24.706787169468278,121.18333201032532],[24.706787169468278,121.18333201032532],[24.706787169468278,121.18333201032532],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706794259620803,121.183320375804],[24.706835425244535,121.18333349849225],[24.706835425244535,121.18333349849225],[24.706818478559565,121.18333149396727],[24.706818206225606,121.18331230038022],[24.706788682089876,121.18333013344069],[24.706788682089876,121.18333013344069],[24.706788682089876,121.18333013344069],[24.706788682089876,121.18333013344069],[24.70680973793185,121.18338593601156],[24.706798495603238,121.18337782609737],[24.706789842466566,121.1833779303469],[24.706794073349478,121.18336364339666],[24.70678644024667,121.1833929932489],[24.706781870906983,121.18343716554774],[24.706777797127057,121.1833916116856],[24.70681418081412,121.18336507818813],[24.706842320761332,121.1833921786258],[24.706845748139262,121.18338714608208],[24.70684060803306,121.18335352332984],[24.7068450984742,121.18329978174899],[24.70686321478869,121.18331291785407],[24.70689427412969,121.18330119675859],[24.70689507106556,121.18324330491211],[24.70690060082969,121.18318409383673],[24.706919534483138,121.18312753028991],[24.706895851609453,121.18313201526848],[24.70689138128151,121.1831375135086],[24.706886772410616,121.18313086374907],[24.706873469129654,121.18313604151955],[24.706865328445726,121.18312374848563],[24.70687179422453,121.1831026380574],[24.706922215146236,121.18305890964072],[24.706973640306632,121.18300372859555],[24.70702667771003,121.18296423460653],[24.707063988601238,121.18292357285443],[24.70710727269763,121.18289246752099],[24.707149472016,121.18286695773018],[24.70717638565303,121.18283825655078],[24.70724417327952,121.18282172114638],[24.70727363704402,121.18281109248103],[24.707341546633515,121.18278697442342],[24.70740511045776,121.1827877006168],[24.70744159733045,121.18279772438103],[24.707511986128782,121.1828170001505],[24.70756595502681,121.18283119497838],[24.707642272573914,121.1828303189065],[24.70769780203418,121.1828262148139],[24.707763531611967,121.1828115188168],[24.707803912575848,121.182774196027],[24.70783115313702,121.18273033122696],[24.707872826716102,121.182691404395],[24.70790287475902,121.1826472918677],[24.707923932402025,121.18259326352765],[24.707951128290155,121.1825463343142],[24.707988444393827,121.18249450819853],[24.70803016238712,121.18244640144115],[24.708069321886473,121.1823968143814],[24.708117089612127,121.18233725874792],[24.708176689002805,121.18231012129704],[24.708248555106653,121.18230877530884],[24.7082999688818,121.18230870390498],[24.708337900959716,121.18235153514836],[24.708380213991376,121.18238897297157],[24.70844647850476,121.18243154393147],[24.70850093367773,121.18248292974515],[24.708530700799688,121.18251254194797],[24.708583588434315,121.18252722988814],[24.70864095470844,121.18253291106288],[24.708689833656287,121.18257495060715],[24.708742422188017,121.18262590591968],[24.708794546560124,121.18264108398189],[24.708841234041984,121.18266312317412],[24.70887575743344,121.182698778579],[24.7089215403359,121.18273159726675],[24.708983676424346,121.18279231911404],[24.709034017812,121.18283376663577],[24.7090640945698,121.18288023493025],[24.709112591303473,121.18292388734402],[24.709159763256906,121.1829781257559],[24.709189575485834,121.18300590936222],[24.70923354760914,121.18301434259848],[24.7092712824167,121.18305303034207],[24.709328300572935,121.18309401301914],[24.709400850734276,121.18310031709208],[24.70945379325787,121.18313981944277],[24.709499172374922,121.18316229605499],[24.70954933669328,121.1831460426683],[24.709582997522947,121.18319414233098],[24.70964998170353,121.18324021603264],[24.709680224136896,121.18325274339782],[24.709733368856753,121.1832947791161],[24.709773460201795,121.18332048804388],[24.709833405751088,121.18335947668878],[24.709846505989162,121.18334348546325],[24.709846505989162,121.18334348546325],[24.709846505989162,121.18334348546325],[24.709842832552507,121.18340749246524],[24.709923526793744,121.18338519935249],[24.709959892966133,121.18342818468712],[24.709988304064495,121.18346409213953],[24.710053323142372,121.18349715517387],[24.710113594610807,121.18353552549348],[24.710143296276424,121.18359322877028],[24.710180651248184,121.18365541119839],[24.710222880515058,121.18370622536916],[24.71026545200983,121.18376793782738],[24.710304720978392,121.18381786024452],[24.710317750052237,121.18386714743275],[24.710356776253242,121.18393074954423],[24.71039022924041,121.18398085382054],[24.710387681979945,121.18404553098638],[24.7104031743828,121.18411276178615],[24.7104136540695,121.18417975306396],[24.71042270578211,121.18425085988963],[24.710445235500387,121.18430256380385],[24.710476165730896,121.1843589353292],[24.710516724348714,121.18440971729532],[24.710517397649543,121.18441328305987],[24.710517397649543,121.18441328305987],[24.710517397649543,121.18441328305987],[24.710564763160075,121.18434437398493],[24.71059975273221,121.18441772096247],[24.710657496184396,121.18446066071603],[24.710707762097368,121.1845317902513],[24.710732706236602,121.18457079302121],[24.71076503275885,121.18463131682725],[24.710820896305666,121.18465976375407],[24.71087324936205,121.18468284742916],[24.710932112129026,121.18469181802398],[24.710970490285987,121.18468480987949],[24.71103464458419,121.18467249937028],[24.71108258008831,121.18467265533484],[24.711142978466793,121.18469673643496],[24.711194707884143,121.1847142572892],[24.71126606514649,121.18474231983456],[24.711316940377113,121.18477162208399],[24.711369027358515,121.18479908283231],[24.711426320716345,121.18485400061743],[24.711452793125094,121.18488598662516],[24.711483283126828,121.18494347461109],[24.711525807914125,121.1850032330916],[24.71156313606552,121.18505806753348],[24.71159311090354,121.18511972388603],[24.711623791988515,121.18517741386793],[24.711647446613767,121.18521620686745],[24.711690900614474,121.18527690284918],[24.71174420146739,121.1853394063502],[24.711789798615907,121.1853656679607],[24.71183220860352,121.1854008616451],[24.711888912417677,121.18544309597293],[24.711938717089403,121.18546752574231],[24.711961038032577,121.18550709403782],[24.71201156955347,121.18554638865825],[24.712048961317944,121.1855876982205],[24.71210431737045,121.18562048935343],[24.712155175310915,121.1856476260606],[24.712211603269985,121.1856579232794],[24.712257666805943,121.18569701203171],[24.712256537338188,121.1856963262168],[24.71231487868787,121.18572086999907],[24.71236446900064,121.1857480896677],[24.7124175547844,121.18578813464606],[24.71247422368169,121.18581068876999],[24.712513641536233,121.18583568985265],[24.712558381481397,121.18586900581693],[24.712611547406244,121.18588174661193],[24.71267784503932,121.18589393234916],[24.712743516390333,121.18590170510846],[24.712823932005296,121.18587931109714],[24.712878705737477,121.18586473083076],[24.712928859149464,121.18583156178629],[24.712977894324354,121.18581079070316],[24.71303236723498,121.18582100475459],[24.713048785556392,121.1858171379726],[24.713047999673343,121.1858222134008],[24.71308169746565,121.18581289042083],[24.71313646188675,121.18584473573824],[24.713197859327956,121.18584269462092],[24.713218062495073,121.1858666686515],[24.713252268684975,121.18592149339196],[24.713275356342272,121.18595060571052],[24.713304861779644,121.18600305422804],[24.713347739610775,121.1860405367946],[24.713412546291686,121.18606214468244],[24.713455575576806,121.18609953007471],[24.713508044611928,121.18613717341759],[24.713559204721964,121.18618109369966],[24.7136142092818,121.18623563912288],[24.713653145092266,121.186263943998],[24.71368706596083,121.18626697891017],[24.71372884787527,121.18625985342678],[24.713728603487493,121.18625956677349],[24.713823377455064,121.18622262733398],[24.71383829576618,121.18628233581617],[24.71386571169536,121.18635776331685],[24.713905912762197,121.1864182906811],[24.713958217032648,121.18646086770389],[24.713960930629927,121.18649228000419],[24.713966893059816,121.1865512818724],[24.713964300746404,121.18660980468715],[24.71397470073347,121.18666837970027],[24.71397232829778,121.18672724897377],[24.713967030784293,121.18678104415955],[24.713982865233177,121.18684811843798],[24.71396786499596,121.18689074819385],[24.713953634773706,121.1869545578346],[24.71393673736734,121.18701152336953],[24.713903493382926,121.18709379244764],[24.71387065424942,121.18712296940603],[24.713833026160437,121.18715826617314],[24.71379298968482,121.18718754149039],[24.713743165452907,121.18719797241513],[24.71368171458565,121.1872014351701],[24.71362497100588,121.18721806733983],[24.713568624269747,121.18723143539057],[24.71349601481986,121.18722244991959],[24.713430923145282,121.18722190696226],[24.71337731910206,121.18719919183059],[24.713338771457437,121.18719676140302],[24.713326920939487,121.1871940975054],[24.713289667912903,121.1871791028184],[24.71328908315865,121.18717754271215],[24.71328908315865,121.18717754271215],[24.71328908315865,121.18717754271215],[24.71328908315865,121.18717754271215],[24.713288163870306,121.18719101596112],[24.713288163870306,121.18719101596112],[24.713288163870306,121.18719101596112],[24.713322994187653,121.18718970391858],[24.713293073327804,121.18724065334582],[24.713243512932454,121.18728246573367],[24.713190213995247,121.18730908391109],[24.713144513962654,121.18737165599724],[24.713144237045274,121.18740840171269],[24.713155375937234,121.18745390518541],[24.713154730336836,121.18752355460084],[24.713170868353988,121.18759392174812],[24.713173966951967,121.18759827637625],[24.713178024182508,121.18759465109689],[24.713169287729055,121.18762358546061],[24.71316182495593,121.1876781634651],[24.713168269220194,121.18769569305825],[24.71317363292843,121.18774098747616],[24.71316646848421,121.18776992873467],[24.71315886592145,121.18776721557147],[24.71312940970342,121.18780147541044],[24.713111015673956,121.18783650852707],[24.713077846559962,121.18786709480514],[24.713080481579137,121.18791823486175],[24.713110843639512,121.18796604543864],[24.713095154819488,121.18798979545038],[24.713089860390276,121.1880291152632],[24.713104236048686,121.18807056580012],[24.71312957180649,121.1880687120614],[24.71314288719026,121.18804972307719],[24.71313738585124,121.18808207237288],[24.71317176294597,121.18812946522333],[24.713181878468,121.18813417764453],[24.713179184987663,121.188168818825],[24.713176924354393,121.18819637803817],[24.71315721692141,121.18824364875304],[24.713186487718158,121.18825518464338],[24.7132013733988,121.18826887548217],[24.71320204191769,121.18827596604113],[24.713213011831236,121.1883085789015],[24.713192608915836,121.18832147301217],[24.713206367002766,121.18834441092933],[24.713219471535112,121.18837813040844],[24.713242033638117,121.18839575265835],[24.71322619675775,121.18842535854334],[24.713209900321154,121.18845284025683],[24.713211845329283,121.18849954011087],[24.713215215496263,121.18852351875297],[24.71323367360404,121.18853536359391],[24.71325110312283,121.18857021580678],[24.71324779716092,121.18860991014515],[24.713242091327864,121.18864000008739],[24.713230849434527,121.18869215487068],[24.71324071366719,121.18871477966168],[24.713254705248804,121.18871599159753],[24.713257967707907,121.18875190929215],[24.713275603218033,121.18880379741881],[24.713303384759985,121.1888115958],[24.713308311400752,121.1888292667435],[24.713324566635187,121.18884423439926],[24.713342307601216,121.1888561884108],[24.71334534521051,121.18888892705279],[24.713349777752068,121.18892562705739],[24.7133758171172,121.1889182444589],[24.713387481555106,121.1889619428294],[24.713423770090106,121.18898064672005],[24.713398057712574,121.18898056314383],[24.713413271411916,121.1890456801832],[24.71339686204436,121.18906382478565],[24.71341923513237,121.18906386927114],[24.713409086976245,121.18907611173968],[24.713386869313272,121.18909435391815],[24.71336363820291,121.18910644029718],[24.713325402027383,121.18911779304366],[24.713351160494366,121.18913692416592],[24.7133678536129,121.18915301358672],[24.71337434070242,121.18914774241179],[24.713376522717603,121.18918548490154],[24.713383089046207,121.18922528239028],[24.7133975899579,121.18925663686849],[24.713397135466188,121.18927152282974],[24.713400988941707,121.1892797390245],[24.713411698957838,121.18929051335144],[24.713412111044775,121.18930713197373],[24.713450943161636,121.189330417233],[24.71346565008342,121.18935060813394],[24.713460288680157,121.18936512824304],[24.713460853618237,121.18937488094923],[24.713483192077668,121.18937156478465],[24.71347914351003,121.18941301645317],[24.713496432579934,121.18941877608448],[24.71353277185011,121.18943455983596],[24.713573629885893,121.18942449033635],[24.713583344881005,121.18944575620561],[24.713590798614636,121.1894697722627],[24.71359879685786,121.18947919595966],[24.713624473784606,121.18950474623541],[24.713614709151052,121.18956005538047],[24.713604849766607,121.18958593140512],[24.713563025603996,121.18963349190315],[24.713529409383582,121.18964151835945],[24.713509589970062,121.18968649920872],[24.713518480603838,121.18970052224785],[24.713495611758596,121.18971808260444],[24.713487914057026,121.18973407022995],[24.71346036671841,121.18975974221853],[24.713458655335067,121.18975955630363],[24.71347392592005,121.18980180362148],[24.7134788875811,121.18981684894526],[24.713472778220662,121.18982422059972],[24.71346123930745,121.18983189589089],[24.71344272054917,121.18987266426716],[24.713456075577838,121.18988452052739],[24.71345922153584,121.18989916859672],[24.71345229050614,121.1898856608688],[24.71346456129332,121.18986965748552],[24.713494868793155,121.18986798231943],[24.713515809769444,121.18986528628622],[24.71353310898766,121.18988650674498],[24.713560793812665,121.1898780327967],[24.713598959059816,121.18987968824081],[24.713621696631595,121.18989893225248],[24.713592012093144,121.18993538963616],[24.713535633168927,121.18995157299987],[24.713481949815602,121.18996307232874],[24.71343780684077,121.1899911268936],[24.713364514611403,121.19002949983226],[24.713310725423195,121.19002837511925],[24.713261083078063,121.19001115956551],[24.71322079659143,121.18998743441794],[24.713197030217238,121.18997481954639],[24.713158488402513,121.1899632780504],[24.713154422052003,121.18994089330734],[24.713145613807022,121.18993947718545],[24.713130487368932,121.18993366488453],[24.713096400152754,121.18993726012212],[24.71305651885098,121.18992335945748],[24.713028180216735,121.18992377901412],[24.712965443324595,121.1899004815885],[24.712888796462202,121.1898961303394],[24.712841505700776,121.1899000940744],[24.71279417773931,121.18990751912773],[24.712779749459838,121.18995211760318],[24.71279169547718,121.19001481535147],[24.712811183480987,121.19004701237411],[24.7128543680763,121.19007833948059],[24.712898915644953,121.19010291485698],[24.71293500081897,121.19011895185321],[24.712921318239882,121.19011776022478],[24.71292461048856,121.19011968201988],[24.712932507515756,121.19013604038187],[24.712931524612955,121.19012284786679],[24.712932564938274,121.19011139508932],[24.712931178006183,121.19010380747191],[24.712921314555686,121.19009783547115],[24.712921749171134,121.19010926283075],[24.712929211893528,121.19012241722332],[24.712934738904384,121.19012616682674],[24.71293525194761,121.19011570646197],[24.71293586464034,121.19011459732752],[24.7129120684636,121.19011407161598],[24.712900579941223,121.19013576561159],[24.71290794410384,121.19016950822783],[24.712920851453816,121.19019604144607],[24.712934725890463,121.19021810127587],[24.71293264734533,121.19024189458683],[24.71291991641787,121.19023567029254],[24.71292973200441,121.19022067699974],[24.71291930257837,121.19019047886742],[24.712945158897462,121.19017733298999],[24.712945158897462,121.19017733298999],[24.712945158897462,121.19017733298999],[24.712981705622884,121.19017853127099],[24.712981705622884,121.19017853127099],[24.712981705622884,121.19017853127099],[24.712907903421986,121.1902295271103],[24.712924032930456,121.1902129236744],[24.712924032930456,121.1902129236744],[24.712924032930456,121.1902129236744],[24.712922879275055,121.19019323160353],[24.712922879275055,121.19019323160353],[24.712925881755204,121.19014775131525],[24.7129344404523,121.19016280415238],[24.7129344404523,121.19016280415238],[24.7129344404523,121.19016280415238],[24.7129344404523,121.19016280415238],[24.7129344404523,121.19016280415238],[24.71298078339208,121.19009676492026],[24.71298078339208,121.19009676492026],[24.71298078339208,121.19009676492026],[24.712982561634835,121.19008023536871],[24.712965891100907,121.19009707742366],[24.712957703298766,121.19008990345652],[24.71296360524394,121.19007004664138],[24.71297507328386,121.1900614873507],[24.712971440228188,121.19005779553659],[24.712971440228188,121.19005779553659],[24.712971440228188,121.19005779553659],[24.712971440228188,121.19005779553659],[24.71298211435968,121.1901291440555],[24.712987222217777,121.19013319755932],[24.712965784520453,121.19013723086273],[24.712961688239172,121.19013972442927],[24.712965886538836,121.1901254142315],[24.71296083002547,121.19012221751085],[24.712963664242483,121.19014559028248],[24.712949475706893,121.19015096775043],[24.7129539743557,121.19015539725481],[24.71295671626719,121.19013887838518],[24.712954291819546,121.19011207702134],[24.71292703472272,121.19008933644797],[24.712944563256652,121.19009921990019],[24.712940064074765,121.19010594408715],[24.712940064074765,121.19010594408715],[24.71290113062174,121.1901029956148],[24.71290113062174,121.1901029956148],[24.712921674154536,121.19008597712212],[24.712928952971936,121.1900745464734],[24.712914358763854,121.19011384146027],[24.712928617377262,121.19017259968953],[24.71293791417791,121.19018887449165],[24.712931633870024,121.19018426060323],[24.71293929227632,121.19019241309931],[24.71294638090793,121.1901622391615],[24.712891759642105,121.19013063910768],[24.712891992653145,121.19010844548664],[24.712891878472238,121.19011646814828],[24.712915900921768,121.19012127653713],[24.712884853982096,121.1901554534403],[24.712888573964214,121.19014647566789],[24.712889919514556,121.19014358809125],[24.712913070531975,121.19015835943092],[24.71292547792916,121.19017520258564],[24.712943495201525,121.19017365497217],[24.712919774322234,121.1901833475539],[24.71292835544124,121.1901938260377],[24.712911354826584,121.19021016959891],[24.712923068799903,121.19022571782752],[24.71294419297787,121.19023360776853],[24.712956276395186,121.19023046987338],[24.712974333303055,121.19023906136127],[24.712979551646395,121.19025835859608],[24.71300155833419,121.19028045076305],[24.71299624919439,121.19029756070006],[24.712992111335943,121.1903210155585],[24.713000577347707,121.19032736282726],[24.71302284144062,121.19035382508221],[24.71300492764643,121.1903756139715],[24.713024113119783,121.19037763108695],[24.712991815266243,121.19040015616373],[24.712996390906678,121.19042095241015],[24.71294891140154,121.19040911118694],[24.712930230913642,121.19044046843149],[24.712953985569552,121.19042021699558],[24.712949937954733,121.19041339762208],[24.71292254599134,121.19042362134292],[24.712893515062238,121.1904604626832],[24.712896446667305,121.19049025074088],[24.71289589000928,121.19051201562398],[24.712898518624907,121.19050999573693],[24.71290142117514,121.19049589284013],[24.712923171465885,121.19051274830971],[24.712915263020534,121.19050214659329],[24.71291818112529,121.19052682468683],[24.712949948659443,121.19051905811921],[24.712955894866568,121.19051402656284],[24.7129348159714,121.19050774768641],[24.71292047592516,121.19051323964662],[24.712919571203226,121.1905006254318],[24.712892036267885,121.19051280491446],[24.71289087419525,121.1905236804012],[24.712871424262342,121.19053224124536],[24.71286373756743,121.1905569148179],[24.712871032607033,121.19055674594051],[24.712927139081796,121.1905785122172],[24.71291238641139,121.19059506968908],[24.71289830675704,121.19058839891227],[24.712909282542473,121.19059349720145],[24.71290389387884,121.19059796162514],[24.71289956243619,121.19060743599222],[24.712901450694627,121.1906224641698],[24.712922270248583,121.19063699125543],[24.712910767788337,121.19065642724202],[24.71291425673783,121.19070610310163],[24.712927180672885,121.19069850320409],[24.71290547461937,121.19071871693802],[24.712897897446073,121.19073775969788],[24.712877363516206,121.19076501719802],[24.712844735626405,121.19076902074043],[24.712817279467874,121.19074823147326],[24.71280533475257,121.19077969725089],[24.712790710663633,121.19076730416982],[24.71281088484429,121.19078831142251],[24.71282212560295,121.19079306006697],[24.71282466850096,121.19080782722281],[24.712820468706205,121.19084084549401],[24.7128121067191,121.19086979647025],[24.71279024276292,121.1908360708467],[24.71278019106042,121.19083336744832],[24.712753666175907,121.19085994368119],[24.71274778245854,121.19084208433092],[24.712747679877605,121.19083295995952],[24.7127533037879,121.19082083977041],[24.71274075197021,121.19083215987399],[24.71272686977616,121.19082391264263],[24.71266692808223,121.19085707578974],[24.71264088971323,121.1908702069635],[24.71264148474675,121.19082524593786],[24.712632611309566,121.19080797462699],[24.712633267539058,121.19081267568998],[24.712642920220368,121.19082886250227],[24.71264786372725,121.19084882091116],[24.712615613401194,121.19087994803061],[24.712606995820575,121.19089541959096],[24.71263795441713,121.19092035271261],[24.71264884887557,121.19092203485071],[24.71266669028709,121.1909417767315],[24.712674795267052,121.19096837090937],[24.71265626516241,121.19099211543946],[24.71264029675269,121.19103371429702],[24.712657986699142,121.19103569115808],[24.712655001855513,121.19105131567024],[24.71267207596635,121.19105556326865],[24.712682834673565,121.19107919840067],[24.712707450042373,121.19110635281335],[24.712725395522053,121.19112669628069],[24.712742460120815,121.1911256179697],[24.712742460120815,121.1911256179697],[24.712762294127288,121.19116230933152],[24.712771285774704,121.19117120309676],[24.712782428185932,121.19117632059927],[24.712736932776235,121.1911288327365],[24.712733111915043,121.19112790414701],[24.712720241720678,121.19117206470703],[24.712709114111775,121.19117017572772],[24.71270464950747,121.19116748533216],[24.71270022809239,121.19113762372001],[24.712713601052297,121.19116257523116],[24.712716771305683,121.19117744960839],[24.712756383026026,121.19119602429569],[24.712765056668037,121.19122960934004],[24.712786715992376,121.19124502296668],[24.712792809126036,121.19126651850104],[24.712782955751713,121.19127793506334],[24.71278921960981,121.19130521829321],[24.712775685628948,121.19131686435111],[24.712784477708567,121.1913525542416],[24.712795876560225,121.19135839354048],[24.712798523733255,121.19137136677851],[24.712784188001308,121.19139617578175],[24.712814549033055,121.19137115291888],[24.712806687680875,121.19142044320091],[24.71279258906664,121.19142229388399],[24.71280862767214,121.19144567205245],[24.712834976548077,121.19146005173799],[24.71285557358278,121.19147966928922],[24.712889049390242,121.19148104916384],[24.71288907467581,121.19147971911192],[24.7128584803238,121.19150003380675],[24.71286301372472,121.19148169656788],[24.712856344695645,121.19149024297229],[24.71285430899441,121.19147762281088],[24.71285755906536,121.19146968107144],[24.71285317773552,121.19145365046859],[24.712859575065007,121.191459066372],[24.712838940377097,121.19149761389693],[24.712820165537412,121.19151979590876],[24.71283219096122,121.19155056384234],[24.712857168418655,121.19156289083023],[24.71287363697169,121.19154869927816],[24.712891199280094,121.19157437515733],[24.712935473379165,121.19163258549517],[24.712944042400427,121.19164276457124],[24.712961041264688,121.19164108828703],[24.712936311308848,121.19164594400661],[24.712938728774652,121.19165550018616],[24.712946094557974,121.19167025564694],[24.712959537177593,121.19169696934631],[24.71296809419249,121.19172249150846],[24.712965526702888,121.19173504434877],[24.71296726360539,121.19172943767879],[24.71296103438719,121.19172497601863],[24.712957048573095,121.19173853440667],[24.712960111164342,121.19173855166481],[24.71296034001123,121.19175025901824],[24.712962659385507,121.19179040813063],[24.71296742038325,121.19180229858945],[24.712977824681623,121.19183172942655],[24.712977824681623,121.19183172942655],[24.71301877852429,121.19184695345658],[24.71305320820238,121.19185027399024],[24.713058967726862,121.19184493746783],[24.713069814560686,121.19184193868395],[24.71305451235668,121.19186395770515],[24.713041265113233,121.1918495039924],[24.713040553940303,121.1918299389846],[24.713043249513404,121.19183184186616],[24.713040322345254,121.19183653919112],[24.71302164150776,121.19182943553123],[24.71298337475488,121.19183041717524],[24.713000532663372,121.19186131632544],[24.71301162372062,121.19187161522022],[24.71303522662172,121.19188255949143],[24.71303602972076,121.1918812313408],[24.713046096216328,121.19188244861971],[24.713058950181942,121.19186109083226],[24.713047600810896,121.19185870545948],[24.71305255251166,121.19184632818329],[24.713033796110647,121.19184463006667],[24.713024259917976,121.19183737873924],[24.71303581998133,121.19187956979702],[24.713038161866443,121.1918552127745],[24.713041093805266,121.19190647185529],[24.71307198064792,121.19190965939329],[24.713111199952145,121.19189130383654],[24.71312200555945,121.1918980694073],[24.713144113812174,121.19187863076569],[24.71315134238966,121.1918714382017],[24.713140549182857,121.19188532292367],[24.71314477269604,121.19188550452209],[24.713155223487508,121.19189771453966],[24.71317824760284,121.19192406417694],[24.713184944965114,121.19191095369708],[24.713184944965114,121.19191095369708],[24.71320306790358,121.19192317305712],[24.713239457594927,121.19193312666346],[24.713249131772972,121.19197242611942],[24.71325563888859,121.1919762795246],[24.713236464658372,121.19200563553186],[24.713269786778365,121.191986377124],[24.713278891602688,121.19200578835438],[24.713294877379877,121.19201466390801],[24.71329292390753,121.19205343067506],[24.713318091299254,121.1920585131148],[24.713365361300774,121.19204949777169],[24.713373047863573,121.19205788783603],[24.713399331533246,121.19207087838818],[24.7134195096968,121.19204612929205],[24.71343618122484,121.19204088364668],[24.71344734197103,121.19203122704772],[24.713481737789667,121.19204060240975],[24.713499238886488,121.19204463964294],[24.713532187958748,121.19205248999837],[24.713542126966036,121.19206687757712],[24.713559488562538,121.1920948572774],[24.713561603171968,121.19209953186667],[24.71358650927704,121.1921159013031],[24.71360118171368,121.19211066205797],[24.71362558492018,121.19214855117164],[24.71364720840178,121.19214733840825],[24.713642693285617,121.19218055574908],[24.713649947651223,121.19218909552752],[24.713650002373647,121.19218929069106],[24.713681379663623,121.19218733857592],[24.713699486276475,121.19225802170371],[24.713706306011396,121.19227123598738],[24.713717850986438,121.19230662771254],[24.713702622616363,121.19233386096249],[24.713690741995823,121.19236112093895],[24.713700691251223,121.19237340810652],[24.713706899769573,121.19238050485055],[24.71370999275883,121.19236234459377],[24.713702448153345,121.19234912489101],[24.71369462476041,121.19237109212793],[24.713699440986453,121.19236648605148],[24.713709541874863,121.19237254583136],[24.71370508884166,121.1923664412627],[24.713703147854392,121.19234534427426],[24.71369868388604,121.19233016311713],[24.713706043618792,121.19233289141356],[24.713716282798956,121.19234419184757],[24.713734470592936,121.19237556698268],[24.713755030427897,121.19240784040527],[24.71377192177189,121.19246550423814],[24.713778446182104,121.19249305638027],[24.71376409678443,121.19251925872565],[24.7137470877231,121.19253627927567],[24.71375289741127,121.1925553203107],[24.71375246771017,121.19254392178418],[24.713741992712116,121.19254352101605],[24.71374106633077,121.1925689730656],[24.713750079868735,121.192584116197],[24.71378591157067,121.1925933850612],[24.713804154722453,121.19259458712878],[24.71380368796754,121.19260723024462],[24.713808813946358,121.19259448915889],[24.713836250044125,121.19261825016942],[24.7138421803803,121.1926168774164],[24.713881506523542,121.1926559284591],[24.71391906834013,121.1926798762531],[24.713953904587726,121.19270878754891],[24.713984939649954,121.19274257062904],[24.71402053585923,121.19277068745436],[24.714045929166236,121.19278173303984],[24.714074543519413,121.19277201365536],[24.71411536324439,121.19281521215855],[24.71413483127128,121.19283645287365],[24.714140505588475,121.19285806116916],[24.7141375033565,121.19290054613191],[24.71416715074391,121.19294725799479],[24.714193911584125,121.19299354826613],[24.71421060802881,121.19301032273644],[24.71421510669866,121.19303698461547],[24.714219158266562,121.19307573237866],[24.7142165323118,121.1931232029655],[24.714249988131556,121.19313324050574],[24.7142462244884,121.19314317235617],[24.71424685929367,121.19315373489181],[24.7142282269733,121.19312977841663],[24.7142282269733,121.19312977841663],[24.7142324899689,121.19306795356567],[24.714276840586848,121.19310754396241],[24.714300285900134,121.19313482371734],[24.714333854866958,121.19316215120311],[24.714361221218134,121.19315525570238],[24.714374723246465,121.19312268573117],[24.714417490293794,121.19311040612037],[24.71446126853459,121.19311339334425],[24.71447216198299,121.19311499914411],[24.71451473230058,121.19312631479785],[24.71453556950195,121.19314230197772],[24.714555636302876,121.19314847552616],[24.714573489041857,121.1931713672368],[24.714599327881626,121.19322341575256],[24.714620568808655,121.19323126562418],[24.71463032021565,121.1932522435666],[24.714666132007576,121.19325964974051],[24.714696724634592,121.1932807759232],[24.714729703967883,121.19329869819371],[24.714757958325425,121.19334207855663],[24.71479620773457,121.1933485115023],[24.714799708215732,121.19335816429839],[24.714818011970173,121.19337599504875],[24.714821462691344,121.19341893194776],[24.714831565272917,121.19347966695935],[24.71484201565015,121.1934926427805],[24.71482982686808,121.19352591183738],[24.71485620176505,121.19357397040562],[24.71491739080943,121.1936259423149],[24.714878628992643,121.19364954779589],[24.714886449152385,121.19365017792674],[24.714880472761283,121.19366160309326],[24.71490109068009,121.19365485655074],[24.71488980370842,121.19365309691273],[24.714873529194723,121.19362980978448],[24.714888033983627,121.19360705653422],[24.71486970933593,121.19362155588209],[24.714839688917436,121.19363305196177],[24.71486302319432,121.19368587774288],[24.714858370002354,121.19372951417881],[24.714881349081587,121.19374780560965],[24.714917880518392,121.1937962672087],[24.714916991210938,121.19381051960464],[24.714940570219746,121.19383704287402],[24.714962210810913,121.1938717633702],[24.7150265225362,121.1939305741197],[24.71504578643953,121.19394774352229],[24.715071030138045,121.19399806265082],[24.71508102029791,121.19401958278407],[24.71509916360656,121.19405573401347],[24.71509129535632,121.19409379152019],[24.715135839973442,121.19413860918438],[24.715127122656437,121.19415298654417],[24.715123634913446,121.19418092702666],[24.715116027100496,121.19424456823633],[24.715104449414913,121.19430384344123],[24.715075041464722,121.19433432649825],[24.715055835253963,121.19434533338419],[24.715095067060393,121.19432920458263],[24.715122396077792,121.19436784656692],[24.71516705300673,121.1943746733217],[24.715171649550335,121.1944178800934],[24.71517365528511,121.19444455801197],[24.71514691615594,121.19449133983576],[24.715141771346257,121.19450429788665],[24.715157609822263,121.19452504720098],[24.715173219001354,121.19452127714807],[24.7152094426904,121.19450680330064],[24.7152409926708,121.19448920125316],[24.71527320671344,121.19445353888409],[24.715285618473178,121.19446015657931],[24.71528055272277,121.19444061738871],[24.715325487031524,121.19441407189669],[24.715325816277208,121.1944341946521],[24.715339862369234,121.1944503023167],[24.71537238745513,121.19445746448811],[24.715371538165623,121.19446919989578],[24.715379766927907,121.1944523958508],[24.715413447949075,121.19448691243849],[24.715444735953312,121.19451576270025],[24.71546828350161,121.19452330794722],[24.71548814458563,121.19453281829016],[24.715500930881397,121.19452665543588],[24.715504643681864,121.19451656653682],[24.715518182537075,121.194511985705],[24.71552642502021,121.19451338335037],[24.71552642502021,121.19451338335037],[24.715524238462567,121.19451858629034],[24.71553233465785,121.19452352087525],[24.71552748771804,121.19453073875783],[24.715534670576403,121.19453040429859],[24.715537306554953,121.19453279950534],[24.715536207383614,121.19453431237164],[24.715524395750435,121.19456708691365],[24.71552740465993,121.1945833118501],[24.715522016411636,121.19459493662325],[24.715517979265933,121.19459206616953],[24.715516501996742,121.19457817798649],[24.71553295614573,121.1945398463386],[24.71555075547989,121.19454648081782],[24.71555476382047,121.19453761743904],[24.71552795550344,121.19450331301847],[24.71549470636117,121.19449431869782],[24.715479758072483,121.19444959102923],[24.715448133244863,121.19442283291025],[24.71544432830615,121.19441356324586],[24.715421827559418,121.19441903078811],[24.71541515737701,121.19440120802234],[24.71542670222038,121.19439998319396],[24.715441438229007,121.1943999354304],[24.715462483509718,121.194412277118],[24.715470907648076,121.19443631653634],[24.715483977685768,121.19444577613616],[24.71547727057788,121.19442914067182],[24.715485394215822,121.19443258775723],[24.715491935289357,121.1944099899581],[24.715474984799357,121.19439316352765],[24.715467109928333,121.1943887147704],[24.715461671030734,121.19436893884716],[24.715448803734066,121.19436967055915],[24.715456006763425,121.1943736364837],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715488482040687,121.19439004538381],[24.715498095268195,121.19437957659062],[24.715519931226286,121.19440070112212],[24.715497142126598,121.19441271224036],[24.71548231556446,121.19440230311835],[24.71546659480754,121.1944050163547],[24.715477934257912,121.19440732685412],[24.715477438408676,121.19441828977625],[24.715466328493697,121.19442235066106],[24.715479735851947,121.19443823754035],[24.7154960614654,121.19445184072117],[24.71548586862437,121.19450303280875],[24.715493847939733,121.19451335230498],[24.71549704515277,121.19453817610854],[24.71548632901393,121.19452761555421],[24.71548921820456,121.19445777251231],[24.715472158978947,121.19447931628572],[24.715492482413865,121.19445456904907],[24.715488449407225,121.19445113849474],[24.715491027654807,121.19444831963463],[24.7154881198423,121.19443625113668],[24.71549533559014,121.19441323076498],[24.71549533559014,121.19441323076498],[24.715512566348714,121.19439235628025],[24.71549835267044,121.19439282958375],[24.715484934906016,121.1943864626985],[24.71548134577605,121.19439635156482],[24.715466250456164,121.19442150878679],[24.71547103495876,121.19445494915888],[24.71547103495876,121.19445494915888],[24.71547103495876,121.19445494915888],[24.71547412461225,121.194529970981],[24.715485575406607,121.19450903216564],[24.71548101286739,121.19444657809723],[24.71546137306094,121.19440858338817],[24.71545056634023,121.19438540480304],[24.715451141233913,121.19438201188565],[24.71545466119801,121.19438006045893],[24.71543832069591,121.1943772238862],[24.715443257971263,121.19437879350868],[24.715426325466343,121.19437017068243],[24.715416839675953,121.1943640218112],[24.715416839675953,121.1943640218112],[24.71542369324246,121.19435773494713],[24.715431980170244,121.1943519365391],[24.71542764151953,121.1943539457047],[24.715429879717586,121.19434966808085],[24.7154329950905,121.1943342395642],[24.715426491518823,121.19433737460992],[24.715421888327256,121.19434527661451],[24.715433087514835,121.19435720813902],[24.71541282677282,121.19435104180263],[24.715410943158933,121.1943618765544],[24.71543862739214,121.19437001781594],[24.715436371103394,121.19437247412509],[24.71543229617614,121.19437557135456],[24.71545418861739,121.19435651427214],[24.715477644759208,121.19436669562769],[24.715480475543846,121.19436997547622],[24.715453479661978,121.1943966930081],[24.715461780353323,121.19439495094248],[24.71546097906201,121.1943824839678],[24.715463457065983,121.1943760849418],[24.7154581434738,121.19437329474616],[24.715467597723134,121.1943755155415],[24.715456241922876,121.19435692067714],[24.715430613425145,121.19437363098776],[24.71547960983031,121.19439284996683],[24.715510290158875,121.19440253040761],[24.7155111099413,121.19441418808321],[24.715525058839855,121.194403982131],[24.715511277613118,121.19442079971898],[24.715470750718314,121.19441868295448],[24.71546946107984,121.1944314534211],[24.715476602959235,121.19446516929277],[24.715484278191436,121.19447692731077],[24.715481721222694,121.19446263814893],[24.71546552223403,121.1944601270888],[24.715441264639683,121.19445154871187],[24.715443775952554,121.19444032425523],[24.715444363944343,121.19443127230869],[24.715448293912203,121.19440457869203],[24.71543855942702,121.19436758132635],[24.715431628410446,121.19435855571557],[24.71544519445368,121.1943933390605],[24.715460122460605,121.19437789986482],[24.715451518607352,121.19437878966326],[24.715439967997717,121.19435901203352],[24.71544848381576,121.19437555700914],[24.715473771744037,121.1943882237187],[24.715476756415995,121.19437576792136],[24.715495660230015,121.19439678956914],[24.71548742473439,121.19440801493742],[24.71547953412402,121.19440375516879],[24.715484911058375,121.19439407458412],[24.715484911058375,121.19439407458412],[24.71546261295695,121.1943860439294],[24.71546925243181,121.19439901378682],[24.715506726681756,121.19441926367034],[24.715506726681756,121.19441926367034],[24.715509281786964,121.19447664397201],[24.715492015552975,121.19446214901214],[24.715496548313812,121.1944531229382],[24.71548899124735,121.19447918530715],[24.715484790497346,121.1944772095139],[24.715484790497346,121.1944772095139],[24.715484790497346,121.1944772095139],[24.715484790497346,121.1944772095139],[24.715490181664975,121.19448513811632],[24.715489110715094,121.19448462986816],[24.715508902892644,121.19447262626075],[24.715508902892644,121.19447262626075],[24.71550619861399,121.194400326827],[24.71546533980374,121.19435747491485],[24.715457888128665,121.19438266693646],[24.71548757131936,121.19438156858996],[24.71548757131936,121.19438156858996],[24.71548757131936,121.19438156858996],[24.715435019986764,121.19445862783698],[24.715460057635724,121.19444535549918],[24.71548604566895,121.19441350514349],[24.715432778056794,121.19438961568159],[24.71544796528626,121.19437921621329],[24.715469926532784,121.19438560188605],[24.715496573997953,121.1944415052915],[24.715479958326465,121.19443599724991],[24.715442541539115,121.19445475084463],[24.715434405803563,121.19443313690549],[24.715427424025002,121.19442570629039],[24.71545150976381,121.19443386736815],[24.71546208199468,121.19443232767226],[24.71548338648415,121.19442672668167],[24.715480265395193,121.1944509772919],[24.715476854260043,121.19443663882751],[24.71548734670812,121.1944404127291],[24.715492348046087,121.19444804902471],[24.715525128718554,121.19446609345266],[24.715550855673065,121.19445413028131],[24.715565281664198,121.19448854292237],[24.715557508143167,121.19449835886427],[24.715542277411128,121.19451899709026],[24.715546699374674,121.19454049078055],[24.71553451172061,121.19456076909157],[24.715536469154173,121.19455784964978],[24.715519483032896,121.19456794543203],[24.71552157987084,121.19457735608266],[24.71553213352533,121.19460118130752],[24.71550630195629,121.19460130188679],[24.715505496370138,121.19460105557255],[24.71549170720267,121.19462805568891],[24.715498729228187,121.19463748303251],[24.715502098779023,121.19466256926621],[24.715502574642578,121.19465139397622],[24.71550353821217,121.19461768174729],[24.715475116727486,121.19462511901222],[24.715471301627215,121.1946403332695],[24.71550699411334,121.19467569483574],[24.71551058747864,121.1947297123886],[24.715540718077186,121.19474833382768],[24.715517671212112,121.19477082466287],[24.715487972832477,121.19479449270158],[24.71544899876325,121.19481087253013],[24.71542877653366,121.19481816881401],[24.715398245940445,121.19484758764303],[24.715360678906002,121.19484818494969],[24.715344521954993,121.19485356606008],[24.7153099148413,121.19484467849756],[24.71526801622541,121.19486652317909],[24.715245172395846,121.19490003972827],[24.715243514612794,121.19491934296745],[24.715227375120612,121.1949474446454],[24.715208429384628,121.1949590550246],[24.71520389965934,121.19501768149509],[24.715224409597603,121.1950495291352],[24.715245968310892,121.19505703430724],[24.715258874483254,121.19505091868656],[24.715265119345183,121.1950507499429],[24.715267993961902,121.195043785596],[24.715269477602362,121.19503038423376],[24.71526257945114,121.1950166209844],[24.715266789023996,121.19497391155078],[24.715268510930247,121.19498356252774],[24.715276550872733,121.1950169030323],[24.715271345117387,121.19503299304392],[24.715263806377774,121.19502098465713],[24.715259287840556,121.19501809303323],[24.715276172095525,121.19503608201461],[24.715272717036594,121.19504757466629],[24.715265214719402,121.19506442637777],[24.71530347562366,121.1950931385286],[24.715310265576232,121.19514198315507],[24.715316130138604,121.19514875614952],[24.71530066303619,121.1951632442925],[24.715327110083972,121.1951902609842],[24.715342812168203,121.19522162817434],[24.715325645494815,121.1952498512862],[24.715372236960427,121.19529455787823],[24.71535280415901,121.19528809776124],[24.715350556237247,121.19538455119167],[24.715365005461397,121.1954015220594],[24.71535896257618,121.19545357131503],[24.715353995918143,121.19550622947594],[24.715360251609276,121.19559351393221],[24.715343021931847,121.19565819516927],[24.7153301878891,121.19569950729678],[24.715301561378443,121.19575013463029],[24.71533307115124,121.19578073002943],[24.71533157494764,121.19579325764553],[24.715367146364162,121.19582965458778],[24.715365110585882,121.19588132983138],[24.715329611055438,121.19589379497585],[24.715334559399192,121.19590420443066],[24.715360640958146,121.19592659825958],[24.71534003724811,121.1959490021629],[24.715358187250136,121.19596939368334],[24.71535720140663,121.19601161639493],[24.715355445729614,121.19602434970768],[24.715355445729614,121.19602434970768],[24.71535372058822,121.19605987636547],[24.71536692806418,121.19607661750635],[24.71541031063616,121.19608285268221],[24.71541921465054,121.19612980969447],[24.715419017927598,121.19615420701464],[24.715423003581304,121.19617360155218],[24.71543333215195,121.1961983768522],[24.715460067923228,121.19621621918348],[24.715447561804375,121.19622429616157],[24.715446726629704,121.19621852173351],[24.715400928167902,121.19623687732046],[24.71541332762295,121.1962488190345],[24.715407845677397,121.1962677249343],[24.71540608135521,121.19627872608945],[24.715376673525892,121.19627793764872],[24.71539169395453,121.19627944730487],[24.715410369388792,121.19629737181084],[24.71543062895915,121.1963321289208],[24.715458644892294,121.19637128519402],[24.71549016438451,121.19639368492739],[24.715498774447223,121.19640956429384],[24.71549958017276,121.196433620638],[24.71548161768333,121.19643363911008],[24.71547415513126,121.1964695724856],[24.715479188426947,121.19646654160955],[24.715468764102344,121.19646189618418],[24.715462833487276,121.1964879055705],[24.715472677647995,121.19652795894069],[24.71546214998793,121.19654051859517],[24.715486266210295,121.19656874286369],[24.715491498117522,121.19658775621643],[24.715500078175996,121.19658452683242],[24.715488046969234,121.19660401056723],[24.715503695842227,121.19662216647244],[24.715528051862993,121.19664555984095],[24.715531022342695,121.19668774403532],[24.715515005004562,121.19672251919131],[24.715526061618913,121.19672585418635],[24.715530015080063,121.19672043299647],[24.715526707121718,121.19673955687685],[24.71551225939531,121.19673665548498],[24.715516919512922,121.19677271427342],[24.71552092217978,121.19679716674052],[24.715528969427442,121.19680793597965],[24.715533461072766,121.19682706045488],[24.71553238912288,121.19684921726056],[24.715513769263794,121.19687709968562],[24.715527840256843,121.19688434645279],[24.715507988405346,121.19689544272947],[24.715500768869536,121.19685888880483],[24.71548213405142,121.19686782448949],[24.71547745132343,121.1968728734929],[24.715475234528917,121.19690104034183],[24.715480506834822,121.19689944120977],[24.715496815105972,121.19688104114022],[24.715492993416483,121.19689368650972],[24.715478461072383,121.19689662877829],[24.715459728295674,121.19688934112725],[24.715460932659234,121.19691644532453],[24.715474778133633,121.19692915553154],[24.715478437308736,121.19694663969817],[24.715464838030343,121.1969525852127],[24.715478807306845,121.1969858010324],[24.715487423365428,121.19698064321183],[24.71547120340313,121.19699748120189],[24.715451049222473,121.19703306874389],[24.715469431936086,121.19704016765517],[24.715473313293856,121.19705508686216],[24.715468818605355,121.19708119282058],[24.715468493380357,121.1970966373948],[24.71547499732924,121.19709018490654],[24.715473027969633,121.19713557544208],[24.71545815720834,121.19716119725463],[24.715479920177,121.19717827651318],[24.715487587096952,121.19716617127192],[24.715477871537786,121.19721494063518],[24.715486625231513,121.19726307475165],[24.715481798133943,121.19728955567716],[24.715479107877854,121.19728223161354],[24.71551815238497,121.1973145188784],[24.715510995223944,121.19732361284369],[24.71552089925296,121.19734076033046],[24.715496178142445,121.19736519584734],[24.715482007432833,121.19738712894551],[24.715470572856713,121.19740751405986],[24.71550649263639,121.19741986985068],[24.71551736700829,121.19744101909315],[24.715513149710105,121.19745007696382],[24.715514587930652,121.19745466660284],[24.715515703722616,121.19744894725498],[24.715521096333784,121.19745822498912],[24.715554282376086,121.1974570307989],[24.715527337152395,121.19748563962443],[24.71549364698516,121.19749834437577],[24.715480137651646,121.19752658773392],[24.71551159430815,121.1975225577185],[24.715511545331086,121.19751790719147],[24.71553268962241,121.197510316317],[24.71553268962241,121.197510316317],[24.715543985088992,121.19749743397871],[24.715532469437033,121.19754396328325],[24.71552472122762,121.19756288008904],[24.715528644189092,121.19756296653267],[24.71552608783303,121.19757700919924],[24.715536411859922,121.19760935669694],[24.715560303940574,121.19762166893784],[24.715591115799615,121.19763028901865],[24.715636332467547,121.1976302382585],[24.715632398890623,121.19766162705977],[24.715628717352413,121.19769090311328],[24.715622729367347,121.19768492752873],[24.715615935638375,121.19770267425932],[24.71562233005068,121.19768444907572],[24.715649679216416,121.19766699009054],[24.71563224684516,121.19767268423782],[24.715624037984803,121.19767817293464],[24.715617261095943,121.19766903270609],[24.715598615441184,121.19766246104396],[24.71559688821978,121.19768109542149],[24.71562993619215,121.1977020533818],[24.7156415326616,121.19767473795439],[24.715660042756173,121.19766884100413],[24.715663180271473,121.1976725548894],[24.715657046339707,121.1976764033245],[24.715655409718355,121.19769309915655],[24.715638248958186,121.19769847925944],[24.71565369928067,121.19768661181766],[24.715644266038243,121.1976860845766],[24.715639968637436,121.19772298898673],[24.715662238534875,121.19770984055523],[24.71568535669432,121.19769285711783],[24.715699111234745,121.19772143493492],[24.715713591104667,121.19770376960125],[24.71573210632707,121.19773402475282],[24.71572615563693,121.19774646700291],[24.715733169226993,121.19779931535717],[24.71574867153458,121.19783167820773],[24.715747407693375,121.19783172252177],[24.715755291104728,121.19783841571521],[24.71576006406143,121.19790256574441],[24.71575654711764,121.1979697605977],[24.71576141279417,121.19800200527948],[24.715773081307862,121.19804175452485],[24.715783995228275,121.19804350574836],[24.71578305022755,121.19806515282365],[24.71580050435028,121.1980690865784],[24.715780492686534,121.19808270477526],[24.715779538646654,121.19809537378121],[24.71577134254943,121.19813476137473],[24.715764140018845,121.1981402246477],[24.7157512708866,121.19815458406373],[24.715767274145648,121.19816138326429],[24.71581506705627,121.19817079134441],[24.71580659777589,121.19819349793748],[24.715868628756454,121.19818608579958],[24.71588150077806,121.19819682947038],[24.71589538726215,121.1981920112415],[24.715899458562568,121.19820758983471],[24.715892950777533,121.19826852615607],[24.715906854712767,121.19828654060866],[24.715950460395554,121.1982616894768],[24.71595777005927,121.19825376668409],[24.715952288503956,121.19828133914068],[24.715943375094376,121.19828803951283],[24.71594376026735,121.1983192601678],[24.71593591814206,121.19832191983211],[24.715896793221308,121.19833221965793],[24.71588031257848,121.19832431077101],[24.71589185983563,121.19828283096729],[24.715920150427703,121.1982936721104],[24.715933640301255,121.19830256319167],[24.71593391997293,121.19830906273525],[24.715955139043075,121.19833260256893],[24.71595259484951,121.19833506188344],[24.715942415363795,121.19832207172492],[24.715940418820274,121.1983120807772],[24.7159450108716,121.19830825404945],[24.715942051651336,121.19830909819365],[24.715958411551306,121.19830233452392],[24.715941194904925,121.19828962997396],[24.71592260804808,121.19828654475234],[24.715917923292995,121.19828662485202],[24.715940866072376,121.19831131786222],[24.7159417861764,121.19831746950241],[24.715969696741364,121.1983185431818],[24.715984134385035,121.19831913236425],[24.71600634830568,121.19831494188732],[24.71602872404667,121.1983136627007],[24.716061081622428,121.19829049323965],[24.71608427623703,121.19827805903248],[24.71609948914085,121.1982765282887],[24.716107797166597,121.19827709805253],[24.716134958933477,121.19825059187455],[24.716152447083005,121.19822091154754],[24.71615773501696,121.19819451760533],[24.71618184236283,121.19818643490287],[24.716225163647394,121.19818707973079],[24.716261318453064,121.19819494584567],[24.716305112464752,121.19820477568108],[24.716324697273432,121.19821277235462],[24.716343312504414,121.19823199014535],[24.7163447731189,121.19824838415867],[24.71634722306059,121.19825066760903],[24.71634722306059,121.19825066760903],[24.716407688401873,121.19826024307027],[24.71641799666625,121.19823907006362],[24.716423384538736,121.19823270835522],[24.716431865478114,121.19824807101851],[24.7164362529868,121.19824493720512],[24.716466594918604,121.19826329906007],[24.71647026881181,121.19825777368672],[24.71648323752714,121.19828458002296],[24.716489232113947,121.19826901533881],[24.716489232113947,121.19826901533881],[24.716471679594232,121.19826862031789],[24.716491551685852,121.1982665849233],[24.71653102765083,121.19829292002285],[24.71655147383873,121.19829822106598],[24.716569881306874,121.19831723103876],[24.716583583872715,121.19830949514112],[24.716571769633106,121.19831617620873],[24.716613199316352,121.19832880514487],[24.716621842685036,121.19832143267298],[24.716636945053185,121.19832246746256],[24.7166541588502,121.1983255085578],[24.716677167286782,121.19832807034955],[24.71666791371831,121.19830605020863],[24.71667833641729,121.19830381728096],[24.71667833641729,121.19830381728096],[24.716699944258234,121.19830553375749],[24.716716404024066,121.19830848873629],[24.716723477824797,121.19829614020722],[24.716716721230362,121.19828819302063],[24.716738737448335,121.19829669487301],[24.716765835038046,121.1983224141628],[24.716762878101616,121.19829881945913],[24.716786153287156,121.1982934791934],[24.716811080472453,121.19829356631047],[24.71683152586722,121.1982919822885],[24.716853746953742,121.19829485764025],[24.71687599698573,121.19831241915905],[24.716921291546758,121.19832442694299],[24.716922072695965,121.19832926864575],[24.71691528060283,121.1983513879918],[24.71694013190909,121.19835687104941],[24.71694013190909,121.19835687104941],[24.717049577219235,121.19835161582061],[24.717034786289133,121.19833762706592],[24.716996083168127,121.1983179657601],[24.717018133931496,121.19832716467538],[24.717031685421176,121.19831799582694],[24.71704296556187,121.19834293006006],[24.717069854153802,121.19835525402223],[24.717082586579338,121.1983482301015],[24.717099900667968,121.19834552585384],[24.717107754971114,121.19834332724318],[24.71713807066507,121.19834080021633],[24.717166371034708,121.19834181729372],[24.717168375962633,121.19832495560229],[24.717177230685138,121.19832406813406],[24.717188703365224,121.19833010813393],[24.717193765274878,121.19833073629562],[24.71717449238199,121.1983505985191],[24.717150203192446,121.19835968831953],[24.717130211372794,121.19834931671201],[24.717131205994438,121.1983553972323],[24.717131205994438,121.1983553972323],[24.717131205994438,121.1983553972323],[24.717131205994438,121.1983553972323],[24.71716035680222,121.19843036514564],[24.717157693700376,121.19842562861602],[24.717157693700376,121.19842562861602],[24.71716798989238,121.1984197435173],[24.717165323138456,121.19836217593824],[24.717164446344974,121.19835371555581],[24.717166806281508,121.19835559570932],[24.717177988074024,121.19835830516159],[24.717174454936345,121.198369230565],[24.717174454936345,121.198369230565],[24.717174454936345,121.198369230565],[24.717174454936345,121.198369230565],[24.717174454936345,121.198369230565],[24.717174454936345,121.198369230565],[24.71719320380761,121.19836777066071],[24.71720760837744,121.19836862230888],[24.717213130402474,121.19836323591618],[24.717213130402474,121.19836323591618],[24.717191519910493,121.19834992151625],[24.717179111929394,121.19835046398161],[24.717179111929394,121.19835046398161],[24.717179111929394,121.19835046398161],[24.717179111929394,121.19835046398161],[24.717179111929394,121.19835046398161],[24.717179111929394,121.19835046398161],[24.717194514799477,121.19837462958854],[24.717183250415992,121.19837294889388],[24.717179431322275,121.19837821808953],[24.717182939622113,121.19837836964345],[24.717182939622113,121.19837836964345],[24.717177360861786,121.19840096326236],[24.717177360861786,121.19840096326236],[24.717182953006123,121.19842533455936],[24.717197367963667,121.19842644501543],[24.717205478265985,121.19841515563483],[24.717169472711312,121.19838187384524],[24.717151656604813,121.19836379360893],[24.71715315540402,121.19835017917688],[24.717146924616973,121.19834557095548],[24.717146718116243,121.19835047199554],[24.717169014000966,121.19837343077279],[24.71717166170276,121.1983490691034],[24.717170445678526,121.19834292022577],[24.71717244655419,121.19832696093327],[24.717188722341305,121.1983229654173],[24.71719725907084,121.19833157932135],[24.71718693940995,121.19832060252428],[24.71717639834225,121.19830888225148],[24.717158867112644,121.19832217998021],[24.717158867112644,121.19832217998021],[24.717130460835506,121.1983098044178],[24.71713650235472,121.19826979619236],[24.71713510929099,121.19827729458991],[24.717139714336906,121.19828234131094],[24.71712405683208,121.19830953554302],[24.717131470872562,121.19830425466908],[24.717137925296115,121.19830053446637],[24.717175820000605,121.19830481840906],[24.717175820000605,121.19830481840906],[24.71719432831887,121.19831139291144],[24.71718516416969,121.19830023105243],[24.71718516416969,121.19830023105243],[24.717188237305734,121.19831393736774],[24.717176939508253,121.19833814132613],[24.71717465887303,121.19833353115305],[24.717181815208683,121.19834616636687],[24.71720818428445,121.1983655766929],[24.717191879798712,121.19836903462301],[24.717177185645678,121.19836579875697],[24.71716936631596,121.19836379581392],[24.717183953028684,121.19834096587162],[24.717188977305877,121.19834466104072],[24.717209725152912,121.19835838886635],[24.717221161122957,121.19836634273855],[24.717249271144727,121.19834686432982],[24.717255808027495,121.19835001264286],[24.71726643286142,121.19836511041892],[24.71728829457394,121.1983702434031],[24.71729723039877,121.19838343524636],[24.71732742437344,121.19839576570891],[24.71733371935663,121.19840740795019],[24.717343257972054,121.19841058058712],[24.71739497319267,121.19844041289893],[24.717414246005962,121.19844800748551],[24.717448333766203,121.19844334340321],[24.717484154339623,121.19844994549341],[24.717522177343138,121.19844218813152],[24.717542318626116,121.19844797799944],[24.717573844286907,121.19844015649068],[24.717615709873087,121.1984451838186],[24.717654241102103,121.19843841887139],[24.71770156169641,121.1984540231386],[24.7177354960907,121.19846982545269],[24.71775177480348,121.19851362670478],[24.717779815409045,121.1985485418964],[24.717786002331863,121.19858016972572],[24.717775964552903,121.19859938407781],[24.717773493777408,121.19862607101126],[24.717771429065863,121.19865621955742],[24.717745062273444,121.19866982847017],[24.71773599141057,121.19864390875128],[24.71775640560932,121.19863605657643],[24.717754376966102,121.19863371763074],[24.717748612778404,121.19864163339875],[24.717742852503616,121.19864276879446],[24.7177415688251,121.19864961882818],[24.71774184201475,121.19864922705473],[24.717742644936855,121.19865009653196],[24.71774509142126,121.19865158784884],[24.717756290749563,121.19865652693649],[24.71775816045276,121.19865050269773],[24.71776690758371,121.19866261201481],[24.717779592153875,121.19865296948373],[24.717786063270236,121.19864953605523],[24.71779465636604,121.1986548037295],[24.71778334475457,121.19865215435652],[24.71775837423757,121.19865046875667],[24.71774700553419,121.19865341306438],[24.717734853003204,121.19865661798501],[24.71774577448056,121.1986605286532],[24.717751550869718,121.1986601427181],[24.717754648213067,121.19867308557328],[24.717754391726587,121.19866890735912],[24.71775699876604,121.19867150503998],[24.7177619504381,121.19867764237668],[24.717770236921435,121.19869010446685],[24.71777987582398,121.19868635213821],[24.717784641611367,121.19868405708641],[24.717781633815704,121.19868924197839],[24.717770618507398,121.19867746952778],[24.71777152261286,121.1986772570229],[24.717766149377702,121.19867134514305],[24.717768426714844,121.19866976885433],[24.717760259957625,121.19867306276144],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717760068027818,121.19867306261162],[24.717744647886484,121.19864296076508],[24.717752520296486,121.19864578039638],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71774862374626,121.19864401344653],[24.71771146078787,121.1986655137428],[24.717726608332697,121.19865830068468],[24.717748884653737,121.19866369238288],[24.717750317973678,121.19867072505711],[24.717755725897735,121.19867521424477],[24.717755725897735,121.19867521424477],[24.71775917586535,121.19866564824034],[24.7177637990227,121.19866828765929],[24.7177637990227,121.19866828765929],[24.717761692640323,121.19867227862055],[24.7177686432214,121.19868103350352],[24.717766222169995,121.19869598966457],[24.717768995407237,121.19869739678613],[24.71776907612115,121.19868756977637],[24.717767919741746,121.19867693440722],[24.717766266822334,121.19867475161168],[24.717766936168058,121.19866738818402],[24.717767215935947,121.19867484787264],[24.717773187240102,121.1986740512721],[24.71777953767514,121.19869270788938],[24.71777105859384,121.19870376727974],[24.717759706425714,121.19870420900357],[24.7177720710292,121.19869408482079],[24.717771075428978,121.1986949307951],[24.717770840216595,121.19869997003606],[24.717782525833286,121.1986642040946],[24.717788499669233,121.19867211833059],[24.71777195050226,121.1986635412366],[24.717769991545037,121.19867802175288],[24.717770999735702,121.19869027992199],[24.717771049267967,121.19869490790434],[24.71776288355926,121.19869239219638],[24.717755305154686,121.19868916520613],[24.717749849130847,121.19868939449753],[24.717742103577606,121.19868975257555],[24.71774608882697,121.19867621934],[24.71773831412586,121.19869468021538],[24.717726602386428,121.19870236615347],[24.717713718412927,121.19870148166149],[24.717712868903273,121.1987054263078],[24.71771408851455,121.19871381526336],[24.71770649115021,121.19870602170997],[24.71770577007355,121.19869527473656],[24.717714798120056,121.1987021679069],[24.717710775602093,121.198702711608],[24.717710246774345,121.19870286221334],[24.717715599747546,121.19869902827573],[24.717733231741057,121.19868465705223],[24.717732809236576,121.19867297950337],[24.717726698796213,121.19867962218669],[24.717752571426175,121.19869558223306],[24.717752571426175,121.19869558223306],[24.717758793116666,121.19870336337158],[24.717758793116666,121.19870336337158],[24.71775917566492,121.19869520155076],[24.717758287171993,121.19869356683587],[24.717743108251955,121.1986805918841],[24.717738140972074,121.1986650141104],[24.717731289113633,121.19866321360323],[24.71773340317767,121.19866837980837],[24.71773340317767,121.19866837980837],[24.71772775822945,121.19864978968299],[24.717721157927397,121.1986515332375],[24.717735020909036,121.19866021693649],[24.717749965134917,121.1986766481946],[24.71775751111401,121.19867515606164],[24.717788287820355,121.19867865901325],[24.71780270231281,121.1986867645974],[24.71780048423859,121.19867975552576],[24.71780048423859,121.19867975552576],[24.71778341905494,121.19869241940566],[24.717790488846884,121.19871013493642],[24.717801736326976,121.1987181840447],[24.717811536693645,121.19871960451631],[24.71781631563669,121.19871362346461],[24.717799795140543,121.19869638321896],[24.717770721495146,121.19867891235953],[24.717770721495146,121.19867891235953],[24.717770721495146,121.19867891235953],[24.717737438479492,121.19865365818069],[24.717739901797113,121.19864494226988],[24.717745422380027,121.19864409803675],[24.717745422380027,121.19864409803675],[24.717745422380027,121.19864409803675],[24.71778872022539,121.19861628395208],[24.717775642702026,121.19863883847223],[24.71776002024414,121.19864670237617],[24.71776002024414,121.19864670237617],[24.717731449611726,121.19867277663683],[24.717746406491084,121.19866403261277],[24.717749136346477,121.1986638727351],[24.717759360900494,121.19866404135735],[24.71776114703059,121.19866388366867],[24.71776114703059,121.19866388366867],[24.717785264941387,121.19865482028324],[24.717760618775557,121.19866379373401],[24.717752636001606,121.19866227238703],[24.71776301382003,121.19867002454734],[24.717760807407775,121.1986699842305],[24.717760438226986,121.19866036772422],[24.717750695713104,121.19866112654304],[24.717751069876833,121.1986584751755],[24.717751069876833,121.1986584751755],[24.717751069876833,121.1986584751755],[24.717751069876833,121.1986584751755],[24.717766846143917,121.19869257204974],[24.717760169380938,121.19868723868665],[24.717760169380938,121.19868723868665],[24.717764487826617,121.19870558930812],[24.717769322175535,121.19868585509607],[24.717769322175535,121.19868585509607],[24.71775263821523,121.19868299013952],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.71774957148986,121.19868802662111],[24.717789715252206,121.19871394650892],[24.717789715252206,121.19871394650892],[24.717783352668743,121.198705114943],[24.717771271052815,121.1986850378194],[24.71776420567381,121.19867624281245],[24.717744023300263,121.19867073142916],[24.717745695210787,121.19867054499342],[24.717748199588605,121.19866910476031],[24.717751699599415,121.19867487402186],[24.71775172992855,121.19867720548068],[24.717749968089976,121.19867325303638],[24.717747099956867,121.19870274641201],[24.717723244485295,121.19872553663916],[24.717718452240046,121.19875500678933],[24.717725230179507,121.19881511960169],[24.717696457316073,121.19881745027273],[24.71765158774856,121.19883007572952],[24.717617990233634,121.1988587850754],[24.717572544602284,121.19887671276065],[24.717511587390074,121.19888339237723],[24.717460612717584,121.19886790189398],[24.717436468287456,121.19884796090594],[24.717416228545314,121.19882582326592],[24.717388010418002,121.19881117503368],[24.71735531651696,121.19880428256394],[24.717319796275547,121.19878986877646],[24.71728111063233,121.19877528294575],[24.717244636331493,121.19875351103516],[24.717219457408387,121.1987410733653],[24.717223870446183,121.19876536820757],[24.717212651913197,121.19877287145829],[24.717196710476774,121.19877412371743],[24.717163264754944,121.19876028013954],[24.717156349501916,121.19875738324082],[24.717147131745023,121.19874385112537],[24.717135967689504,121.19872575426874],[24.71711939872996,121.19871829075544],[24.71708723353689,121.19872227000296],[24.717082749514727,121.19870972970658],[24.717080659316093,121.1987210684053],[24.717069192419714,121.1987037128477],[24.71706297767635,121.19870178786077],[24.71704363728238,121.19869689646745],[24.71702687044463,121.1986963713455],[24.717005385886807,121.19868939967992],[24.716995178247817,121.19869030549053],[24.71696953216875,121.19868077113588],[24.716972433299183,121.19867428848495],[24.716949681659976,121.19868326176693],[24.716934611825394,121.19869052714564],[24.71692645772,121.19869460384095],[24.71688827712992,121.1986843078095],[24.7168632773416,121.1986759860913],[24.716841780348155,121.1986804406658],[24.71683898840972,121.19867029609061],[24.716803805294038,121.19869730681185],[24.71678555996007,121.19868931530632],[24.71674035205728,121.19868639801028],[24.716713739075225,121.19868841423607],[24.71665927076546,121.1987000172306],[24.716622515609924,121.19871206124907],[24.71657849385721,121.19870248080363],[24.716541664457484,121.1986934364012],[24.716515381748675,121.19869494569586],[24.716482602471817,121.19868427592361],[24.716453010215048,121.19868329125573],[24.716393518008964,121.19867883679156],[24.716362008173167,121.19868604399088],[24.716350906602635,121.19867687114998],[24.71635516350765,121.1986658511673],[24.716339865367086,121.19864912340132],[24.71632704447151,121.19866089344364],[24.716314161533976,121.19867263906477],[24.716328158736793,121.19865927377289],[24.716318144163512,121.19866823727904],[24.716302650257685,121.19867476991168],[24.716296485624227,121.19868330482396],[24.71630224959254,121.19869154005593],[24.71629775623008,121.19868699908959],[24.71628664107206,121.19870165783345],[24.716273457828933,121.19869448726028],[24.716259940787335,121.19868658083456],[24.71626559303343,121.19870181829883],[24.71624192191581,121.19867279628949],[24.71621997463566,121.19865322626073],[24.716197225235245,121.19864414013995],[24.716168847723,121.19862440942596],[24.716142051993103,121.19861140957305],[24.71610983038339,121.19858483680726],[24.716091907059443,121.19856413594268],[24.71604571850149,121.19852806629275],[24.716001147736215,121.1985083910225],[24.71595910729218,121.19848936631799],[24.71592257674651,121.19846410189604],[24.715901498187744,121.19843475351978],[24.715901498187744,121.19843475351978],[24.715876309199352,121.19839158410996],[24.715861814563954,121.19838598180863],[24.715849320700862,121.19838990749383],[24.715836997208118,121.19838850932082],[24.715826336307916,121.19837785001587],[24.71580458781024,121.19837641593891],[24.71577425990368,121.19838019790294],[24.71574242797805,121.19837801132414],[24.715723779668522,121.19838556954059],[24.715730008016113,121.19837771336718],[24.715732438356024,121.19838607034652],[24.715725420614643,121.19840117214079],[24.715714601131523,121.19840801898644],[24.71568032840439,121.19839586691461],[24.715657932066005,121.19841189224789],[24.71562823376682,121.1984199163777],[24.715585423025377,121.19841786196687],[24.715530034768552,121.1984023448902],[24.71550306763747,121.19839929883288],[24.715477810012697,121.19838878708343],[24.71544093920643,121.19835723000882],[24.715433100249886,121.19834118263871],[24.71541601400725,121.1983266625357],[24.71539200731347,121.19829144074687],[24.71535860098798,121.19826742789112],[24.715312348803728,121.19825040693463],[24.715292051226328,121.19824239428284],[24.715234073249363,121.19821166939691],[24.715193877469073,121.19818282061475],[24.715158506808468,121.19815103797436],[24.715132860686577,121.19811625393055],[24.715134035690404,121.19807284332721],[24.715111608548487,121.19805605519501],[24.715096864352503,121.19803435358254],[24.71508943953298,121.19802655068976],[24.715089878075567,121.19802590326951],[24.715102272218054,121.1980264556109],[24.71509906186914,121.19803034379238],[24.715117503433476,121.19803502827189],[24.715108872901265,121.198014170649],[24.71511382591205,121.19799754852247],[24.71511323405817,121.1980054717892],[24.715119401465177,121.19800859727609],[24.715116843088133,121.19801319786772],[24.715113888830505,121.19799972075208],[24.715116649390392,121.1980024969474],[24.715084167629897,121.1979945909685],[24.715071641423332,121.1980100377631],[24.715066790062632,121.19802042421375],[24.715068214272165,121.19804070227444],[24.7150740071724,121.19804217896697],[24.71507813221216,121.19803934510385],[24.715077010481792,121.19803058395729],[24.715071133547063,121.19801186225168],[24.7150664037087,121.19799748209638],[24.715070724069474,121.19799267096052],[24.715069798205512,121.19798835624151],[24.71507787749388,121.19800387318965],[24.71508540150224,121.1980250572101],[24.71507096002138,121.19804665608106],[24.71506584354147,121.19802877954582],[24.715070243201115,121.1980269234854],[24.715089345087737,121.19802066027181],[24.715087602383534,121.19801071522348],[24.715110459508953,121.19800709919048],[24.715123234735074,121.19803503377248],[24.715121589477846,121.19805983042629],[24.715140280554483,121.1980796701557],[24.715173584263322,121.19812255170112],[24.715198001016418,121.1981647716025],[24.71522864288283,121.19818842925906],[24.715258462544845,121.19819597801627],[24.715279288135832,121.19821714088576],[24.71532664745654,121.1982501723586],[24.715347669312344,121.19828563513158],[24.715406982316193,121.19831100878525],[24.715443695983932,121.19834736957918],[24.71547804997822,121.1983666512337],[24.715518470785064,121.19838150471371],[24.715561244813742,121.19839305592224],[24.715591394471662,121.19837488859945],[24.7156379828852,121.19837033868839],[24.715665049924095,121.19834836824234],[24.715691614829716,121.19833912623068],[24.715724606987887,121.19834060072876],[24.715790096867533,121.19835227308626],[24.71583474572967,121.1983883684875],[24.71588308425049,121.19841961755486],[24.715920551347423,121.19843738651225],[24.715962004307848,121.19846053934198],[24.7160086128581,121.19848040279362],[24.716046382799405,121.198511584298],[24.71608299563938,121.19852889269733],[24.716113190159653,121.19856364434472],[24.716133384569734,121.19857235105405],[24.716171845067162,121.19858740714686],[24.716192129943753,121.19860765341413],[24.716231042613668,121.1986231352915],[24.716270006338032,121.19864358244816],[24.716282816805627,121.19866440793268],[24.71628303927274,121.19870389634976],[24.71626094190253,121.19872155225026],[24.71625188071863,121.19874506270229],[24.716230590108186,121.19875892870712],[24.716200152365378,121.19877270207675],[24.71618770860819,121.19879760870295],[24.716172046652343,121.19880019227823],[24.716154750643145,121.19881929628707],[24.716146642243313,121.19883324188177],[24.716156636575473,121.19883252302517],[24.71615309159704,121.19882954065406],[24.716158447888283,121.19882952400968],[24.71614656382533,121.19882999065904],[24.716121013641587,121.19883086374885],[24.71609571348314,121.19885040060002],[24.71606804220992,121.19887653796401],[24.716031579419873,121.19888795734688],[24.715983041151553,121.19891262746236],[24.71595384605532,121.1989358743646],[24.715952764794146,121.19896801168707],[24.71596428059775,121.19899014931147],[24.71598711925367,121.19903381704756],[24.716007188311853,121.1990872885842],[24.716026700789655,121.19912672046826],[24.71603231146313,121.19916840988412],[24.716072001209593,121.1992088087675],[24.71608881394753,121.19924264412677],[24.716099898307103,121.19930027766453],[24.71608257595678,121.19936276128733],[24.716077984355607,121.19939007357452],[24.71606949797068,121.19944318853224],[24.716087907771183,121.19948170270055],[24.716068606039702,121.1995365320662],[24.716062205173646,121.19958961128044],[24.71604338630679,121.1996325975491],[24.71602008039198,121.19967852657652],[24.71601706765844,121.19970507230528],[24.715993102214593,121.19972869236692],[24.715987194201137,121.19978332377637],[24.715981857951547,121.19983900125303],[24.71598076055317,121.19989342711183],[24.7159889017667,121.19992559572754],[24.715954255364785,121.1999526491177],[24.715928201460102,121.1999684048001],[24.715875078314376,121.19999272025964],[24.71584216575523,121.20000410255486],[24.715806469343498,121.20003248011419],[24.715761705771477,121.20003283975619],[24.715747176645852,121.20000529849729],[24.71571911915488,121.19997233129294],[24.71570643557143,121.19995346357025],[24.715672032808378,121.19995649378309],[24.715646130070798,121.19993301907535],[24.715647566431826,121.19993022133123],[24.715625266201197,121.1999381560581],[24.715582681688186,121.19992015406216],[24.715541742532473,121.19992575316112],[24.715514407085898,121.19992550241555],[24.715481100358225,121.19992143990174],[24.715451014510688,121.19989311203919],[24.71539404832696,121.19987408927678],[24.715346754980725,121.19984156946651],[24.715314928825908,121.1998198199792],[24.715298300126925,121.19976576968847],[24.71525588304242,121.19974080360083],[24.715230322169415,121.19971186591619],[24.715205996316044,121.19966032954022],[24.715193936846592,121.19962534467723],[24.715163313507205,121.19957333028468],[24.715115331830265,121.19955776730082],[24.715090754984,121.19953007459311],[24.71507435924805,121.19951164014054],[24.7150605159529,121.19947336449174],[24.715036213677358,121.1994293064593],[24.7150089306405,121.19938871639425],[24.715008010800407,121.19937667689643],[24.7149810860488,121.19934482185789],[24.71497751775238,121.19932740849765],[24.714942641220265,121.19931929931295],[24.714906707706028,121.19932523094114],[24.71488372956481,121.1993385503514],[24.714881294967928,121.19937397047084],[24.71483383734761,121.19940363883606],[24.714824193652362,121.19943203353859],[24.714809586412237,121.19944964021956],[24.714821388146223,121.19948859385399],[24.7148077831099,121.19953513412817],[24.714794637858777,121.19958123971557],[24.714812687118542,121.1996201930676],[24.714801844767944,121.19967387825346],[24.714783346442502,121.19971711679462],[24.714776765460673,121.19975734996129],[24.71478297543025,121.19977959608903],[24.714775371943873,121.19978579935568],[24.71475999269027,121.19982785174045],[24.714751350335796,121.19985024453419],[24.71474273206688,121.1998826595554],[24.71473760802678,121.19993069584126],[24.714726549929807,121.19995261647419],[24.714731609923717,121.19997084616175],[24.714689843589785,121.20000150274424],[24.71464647074245,121.20001437844626],[24.714612534157183,121.20008443782696],[24.714554005099007,121.20008943070401],[24.714536191233666,121.200115563173],[24.71452622556947,121.2001493892486],[24.71449972714941,121.20018507109373],[24.714482347727856,121.20022905447514],[24.714422286019456,121.20030382955038],[24.714416707884435,121.20030823824715],[24.714386678720864,121.20030346686464],[24.714380761567693,121.20027254842381],[24.71434658108212,121.2002298069266],[24.71432512616524,121.20018419912434],[24.71433497155943,121.20011833298886],[24.714345496265548,121.20006740240258],[24.714348371337824,121.20001918416189],[24.714343600407947,121.19998504559558],[24.714358818785357,121.19996435062069],[24.714395446881177,121.19994683084391],[24.714447213262417,121.19992972692292],[24.714474177192304,121.19988414826783],[24.7144668489181,121.19983911653972],[24.714450614757453,121.199772050854],[24.714421803233545,121.1997083571146],[24.71440955579275,121.19965733155955],[24.71437421157766,121.19961107286125],[24.714323808297948,121.19959984116728],[24.71427247346893,121.19959907930816],[24.7142229694387,121.1995969406784],[24.7141740585124,121.19958807098544],[24.71413336848047,121.19960448689862],[24.71408497623308,121.19962090796268],[24.714032454648354,121.19967472089905],[24.713978487418007,121.19969027810845],[24.71392714239565,121.19972721553368],[24.713874146580956,121.19976286346161],[24.713804313114878,121.19979298723176],[24.713752565664958,121.19982384443982],[24.713704474313776,121.19988301810515],[24.71364041923943,121.19994078577663],[24.713573092564346,121.19996788724067],[24.713519235873655,121.19999813020829],[24.71346099588037,121.19999864049021],[24.713395205987332,121.20001116991486],[24.713329270626122,121.20004300287843],[24.71326611164653,121.20005581347017],[24.71319572777037,121.20006363935036],[24.713139598277337,121.200081100977],[24.713081677476286,121.20007359489507],[24.713024689335413,121.20006863875886],[24.7129548372319,121.20004512713267],[24.7128960029733,121.20001249818564],[24.712842792826013,121.19999750537697],[24.712786411438852,121.19998147007821],[24.712712539886663,121.1999623912397],[24.712652398491002,121.19995739185207],[24.712601141934776,121.19996448136304],[24.71253672143613,121.19995632842235],[24.71247905071719,121.1999558962731],[24.712421393031853,121.1999377340644],[24.712361187624037,121.19991670393925],[24.71230603999898,121.19989034913894],[24.712259865768488,121.19986079233021],[24.71220091283111,121.1998196663043],[24.712152378920305,121.19977181385467],[24.712113942818526,121.19973182190486],[24.712064703161733,121.19968994048618],[24.712003217113665,121.19965460060256],[24.71194644612958,121.1996155728008],[24.7118717196724,121.1995916639357],[24.711808419937952,121.19958020602922],[24.71174562886232,121.19955630489305],[24.711695960654115,121.19954639402279],[24.711649748458115,121.19952071060426],[24.711595358636483,121.19951193053157],[24.71155912927363,121.19948269557543],[24.711513122473278,121.19945628050908],[24.711471115825233,121.19943421691985],[24.711419020803135,121.19941654444551],[24.71136218147638,121.19940450856281],[24.711311270061298,121.19942195233763],[24.711278655833706,121.1994528508488],[24.711243219507832,121.19949292389434],[24.71121406930694,121.19952973552213],[24.71118870930924,121.1995659091482],[24.711132901084895,121.19958321099195],[24.71110628047321,121.19958230821129],[24.711108654401745,121.19958208861509],[24.711088664551394,121.1995588517988],[24.71109728190548,121.199515139164],[24.71111856803996,121.19945283763138],[24.711150682810974,121.19938706721062],[24.711184358453913,121.19932642292902],[24.71121412334988,121.19927018640122],[24.711263820499727,121.19923637902838],[24.71131080152841,121.1992099711462],[24.711353766095318,121.19918842053868],[24.71140315346319,121.1991519273709],[24.711436501690415,121.19910908717931],[24.711466069558327,121.19904850689645],[24.71149125440031,121.19899292967862],[24.711539485213493,121.19893118426268],[24.711573989802503,121.19887088774736],[24.711617535882834,121.19882508793573],[24.711651919176166,121.19876246823343],[24.71168838262851,121.19870313476835],[24.711719876273147,121.1986613565877],[24.7117472840255,121.19863003046595],[24.711790082443393,121.19857949067946],[24.711826353190993,121.19852622863046],[24.711802861258302,121.19848143518345],[24.711759439198886,121.1984655161494],[24.711707178886122,121.19845904248501],[24.711665822516885,121.19845901940904],[24.711627854729706,121.19845060379194],[24.711597639539878,121.19847520786158],[24.71155466693605,121.19850657611546],[24.71151184990317,121.19852265632598],[24.711464623114573,121.19853811075758],[24.711437308373736,121.19856146747726],[24.71141095774789,121.1985737921729],[24.71140137394265,121.19857092639168],[24.71135325859927,121.19859333920104],[24.711319133920636,121.19860282236132],[24.711280659046547,121.19862651285959],[24.7112275823559,121.19865654661],[24.711172144167275,121.19868010297566],[24.711112900468024,121.19868057774885],[24.71104621047999,121.19868749987347],[24.71097711785911,121.19870122551313],[24.710895490468843,121.19867394922814],[24.71082465652832,121.19865460095946],[24.71076365682136,121.19865246197698],[24.710699785223717,121.19866805301136],[24.710638693430152,121.19867867655775],[24.71055550235118,121.1986862620193],[24.710498944352405,121.19869052677068],[24.710448467407815,121.19869460333722],[24.710399315555183,121.1986952594372],[24.710348495079867,121.1987037651082],[24.71029549083139,121.19871104343025],[24.710227633572842,121.19872196248737],[24.710184269138956,121.19874964555476],[24.710148783971263,121.19877647788181],[24.710106446114402,121.19880941161867],[24.71008513618658,121.19883452742987],[24.71008582877023,121.19888241217113],[24.71008381381849,121.19893597459209],[24.71007160862633,121.19899337610656],[24.71005912650637,121.1990088982797],[24.710062553113037,121.19902240233853],[24.71004525445324,121.19905246678285],[24.710018801998093,121.19907386038939],[24.709996792868353,121.19912443390822],[24.70996082854043,121.19914996548611],[24.709928021127038,121.19917645512434],[24.70989104745027,121.19919141277981],[24.70985015765893,121.19923551326713],[24.70978272869886,121.19927108869902],[24.709723070402934,121.1992991859139],[24.70966422830731,121.1993177489608],[24.709641003269585,121.19935584790306],[24.709601308110443,121.19937278491176],[24.709560779296893,121.1994065005756],[24.70953718483755,121.19944105924355],[24.70950973047394,121.19947440710003],[24.709444111970768,121.1994988853409],[24.709359910213262,121.19953337053875],[24.7092985642638,121.19956282613289],[24.70924663173141,121.19958079353447],[24.709215010968414,121.1996059238785],[24.709149388404803,121.19963082229982],[24.709092373189858,121.19964062587661],[24.709041560741184,121.19966982028674],[24.708986176128523,121.19970887073596],[24.708946062217617,121.19973925399017],[24.708899199028778,121.19977721018404],[24.708869780416546,121.19983735277009],[24.708817127814346,121.19989427122539],[24.708773583660243,121.19995751575455],[24.708756702995153,121.19998800011963],[24.708764336413477,121.19997788794906],[24.70878056862696,121.19996415479088],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708784064397648,121.19995412169457],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.708713627981318,121.1999523079072],[24.7087164054232,121.20000197427298],[24.708740287745965,121.19999633683099],[24.70876090615047,121.19998965553006],[24.70879159135929,121.19997697184814],[24.70879664193016,121.19993427628108],[24.70879645957679,121.19995296388323],[24.708806412630786,121.19996387246685],[24.708806412630786,121.19996387246685],[24.708843129401345,121.1999707625229],[24.708845672389067,121.19998800509822],[24.708827285063787,121.19999176682039],[24.7088047823389,121.1999751601199],[24.708806121102686,121.1999765500468],[24.70879272567104,121.19997166117585],[24.70877170383318,121.19995963811347],[24.70877897708968,121.19999347760687],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708778602152243,121.19999351570289],[24.708729068791957,121.19996510440434],[24.708689000916042,121.19993106906632],[24.70866680915402,121.19992077448461],[24.70866927071376,121.19994007793993],[24.70861622121992,121.19994955329834],[24.708562525489548,121.19996779917669],[24.708506587008312,121.19999431324386],[24.70845964039771,121.20004484597581],[24.708401216450934,121.20007590232386],[24.70837668043174,121.20012041796204],[24.708365772139807,121.2002253824123],[24.708326657107655,121.20029028584183],[24.70830238808393,121.20033587416792],[24.70831346720356,121.20039091772888],[24.708296587382332,121.20045559846488],[24.708271014551954,121.20050865043996],[24.70825287116541,121.20055602819872],[24.70825369754563,121.2005973037839],[24.70825409641263,121.20062917181754],[24.70827691769651,121.20068831178719],[24.708229952175866,121.2007518124209],[24.708201348116592,121.20081721346561],[24.70815654239136,121.20088899661383],[24.70813668886434,121.2009355192797],[24.708108971100696,121.20098327028192],[24.70808222738225,121.20098341369228],[24.708031555537293,121.2010364721102],[24.707975542466652,121.20103699588209],[24.707974518886672,121.20107035018808],[24.70801691366833,121.2011062342475],[24.708047321572444,121.20115844718438],[24.70809640208593,121.20120054749805],[24.70812147988988,121.20123289394253],[24.708181775946812,121.20124931775362],[24.708233982600937,121.20128698178898],[24.70826081482556,121.20135144713117],[24.708163256543976,121.20137741348833],[24.708119383298772,121.2013715983124],[24.708083266556365,121.20136311611901],[24.70803525440087,121.20135509000569],[24.70797892349349,121.20132266799038],[24.70795529629753,121.20135786169044],[24.707994682718926,121.20139805203344],[24.708041273068748,121.20144167857187],[24.708098683571116,121.2014454568101],[24.708145601092866,121.2014568024931],[24.7081159296025,121.20152884389523],[24.708058444790296,121.20154321555101],[24.708004732624495,121.20153637011457],[24.707951999685456,121.20151004218745],[24.707893703101107,121.20149776891114],[24.70784523311187,121.20149092572164],[24.707866240354768,121.20152432147478],[24.707915913587335,121.20156392047295],[24.707968352869575,121.20157860736803],[24.708007361488935,121.20158392234632],[24.708070005636966,121.20159572697418],[24.70811216946647,121.20165930575423],[24.708092283829014,121.20171147921103],[24.70804498649157,121.20174632942043],[24.707989180488852,121.20175108970996],[24.707931565622236,121.20175827323644],[24.70786859336354,121.20178359914044],[24.707818481851955,121.20178589252782],[24.707768921069853,121.20177016836382],[24.707715245331258,121.20172651889523],[24.707680870178145,121.20169442589095],[24.707658523996805,121.20165279641077],[24.70762720072788,121.20162339544831],[24.707596321346074,121.20158733135287],[24.707557666246448,121.20155434987802],[24.707508179573143,121.20155114925525],[24.707490755443377,121.20159158778416],[24.707493055769053,121.20163767834522],[24.707500479613046,121.20167982447879],[24.70749757259337,121.20175344958525],[24.70750259240166,121.20179651338307],[24.707497895178857,121.20185738027087],[24.70751385609563,121.20191260489733],[24.7075199036069,121.20196397849028],[24.707534130251528,121.2019824844474],[24.707549340648843,121.20202911906811],[24.707552756998446,121.20209434397809],[24.70757019726727,121.20213037872752],[24.707581442170788,121.20219075122522],[24.70762629342983,121.20223894588412],[24.707641990629575,121.20227839188229],[24.707660419977962,121.2023338587554],[24.70767506299048,121.20239591998121],[24.70768297880505,121.20246030446661],[24.707684302750135,121.20253031414471],[24.707654017606004,121.202594085689],[24.707606739241328,121.20263185420642],[24.707585361877857,121.20268121437502],[24.70753489652995,121.20274014775818],[24.707491939749264,121.2027712962215],[24.707446840885474,121.20281234289035],[24.707385632874303,121.2028304473546],[24.707332527027823,121.2028698923564],[24.707273927572366,121.2028966753789],[24.707223988046334,121.20293532517965],[24.70721787953371,121.20294712324862],[24.707231897295,121.20296990426976],[24.70725565552249,121.20297795913653],[24.707275919658223,121.20297170623236],[24.707299651717676,121.20296081907944],[24.707337830111054,121.20294260419595],[24.707384691069958,121.202928023648],[24.707422056025585,121.20292158894725],[24.707482202611853,121.20291656215882],[24.707510529377878,121.20291086413167],[24.70755880402365,121.20291836457075],[24.70762257468811,121.20292439144974],[24.707689946035742,121.2029505395807],[24.707749536066146,121.20295270936205],[24.707822269107506,121.202983743395],[24.707861544890587,121.2030459598831],[24.707845386540306,121.20310495120266],[24.70780494477699,121.20315504641034],[24.707769669192114,121.20320133997427],[24.707737247152995,121.20325707435495],[24.707693110652656,121.20330695484189],[24.70766105129487,121.20334420853412],[24.707602953575098,121.20338677040714],[24.707539373419777,121.20342928004119],[24.707482152945452,121.20345676691237],[24.70743511309125,121.20350109101767],[24.707388109888342,121.20352764732158],[24.707376023568962,121.20351920717351],[24.707368238072412,121.20351674435953],[24.707364669164164,121.20351110723178],[24.70736404433926,121.20351168861781],[24.70736404433926,121.20351168861781],[24.70736404433926,121.20351168861781],[24.70736970361882,121.20351714112316],[24.707349944771025,121.20353398479422],[24.70735847719119,121.20358231948792],[24.707345022062853,121.20360081783959],[24.707327430109835,121.2036486686823],[24.707330634330685,121.20369729192338],[24.707318711731027,121.20375828740285],[24.707306379326432,121.20381153014783],[24.707319979623584,121.20388044403613],[24.707343652763107,121.20393112436123],[24.707347931341452,121.2039831310286],[24.7073608488935,121.2040439798158],[24.707390464814875,121.20409421025374],[24.70741095218639,121.20415984991465],[24.707396335396425,121.20422762939505],[24.707389261227398,121.20426476800145],[24.707376829315397,121.20433107769341],[24.70735309537214,121.2043714966814],[24.707349366212878,121.20439888085498],[24.707320389651212,121.20440513741636],[24.70732072111496,121.20439246582265],[24.70729155845549,121.20440481339294],[24.70725886830632,121.20436437553931],[24.707189957400207,121.20441237814752],[24.707164368804843,121.20446694656682],[24.70713255830699,121.20448577931386],[24.707125944275315,121.20449575368674],[24.707132785253442,121.20451798852713],[24.707152802721247,121.20453496531898],[24.70712562299041,121.20450095976283],[24.707098169270562,121.20452410528725],[24.70712015906741,121.20452179431713],[24.707101163688087,121.20450033308886],[24.707101646742405,121.20450136405393],[24.707100769366807,121.20448587145457],[24.70710400647994,121.20450819958523],[24.707091582365564,121.20453003378309],[24.707182701356206,121.20449051077468],[24.707198764739044,121.204487019429],[24.70722277293242,121.20453419927992],[24.70720198153154,121.20455514917683],[24.707198136160205,121.20457533455912],[24.707147457133924,121.20455313445403],[24.707137664009533,121.20454992474858],[24.707137664009533,121.20454992474858],[24.707123880670217,121.20458921877338],[24.707123880670217,121.20458921877338],[24.70716431500295,121.20458494991308],[24.70717648771816,121.20455333437256],[24.707214702892944,121.20449536875789],[24.70722429638419,121.20453134935586],[24.70720583371633,121.20453599114006],[24.70719171964767,121.20457331054675],[24.707167454353147,121.20459793648244],[24.707158308035446,121.20460927472499],[24.70715986122641,121.20460036922529],[24.7071599006914,121.20458926271323],[24.707158710132862,121.20460636936691],[24.707164066171455,121.20460709623592],[24.707159547583895,121.20461631639535],[24.70716917159619,121.20458465964202],[24.70715941910395,121.20456586287986],[24.70713563527957,121.2045557196549],[24.707103432141164,121.20453294219739],[24.707099883290326,121.20452884827722],[24.70707214945919,121.20450917692887],[24.70708079189579,121.20451287898331],[24.707076159223902,121.20451047547289],[24.70711083205313,121.20451503847315],[24.707186443869364,121.20449471075001],[24.707174024567074,121.20446038895665],[24.7071567327829,121.20444892267334],[24.707155861374236,121.20447179878248],[24.70716205455014,121.20445831683924],[24.70717104074455,121.20445669276573],[24.707179937407094,121.20444841144838],[24.707134949116075,121.204461782619],[24.70704796948208,121.20443269080825],[24.706992551673927,121.20442218005275],[24.707044666692767,121.204387951751],[24.70702779988669,121.20436584036372],[24.706989025724937,121.2043119486196],[24.70694560667302,121.20425701669394],[24.706892264820528,121.20420459993959],[24.706852804298784,121.20416103211073],[24.706769020133873,121.204132336999],[24.706702909411543,121.20408486355012],[24.706627666777127,121.20407085207987],[24.70655756659772,121.20405354458023],[24.706480718824515,121.20403113865173],[24.706409983587854,121.20398462876453],[24.706348668324132,121.2039338054325],[24.706306483001224,121.20386540663463],[24.706264087234704,121.20380661854125],[24.70623159376523,121.20377091451526],[24.706165477096903,121.20375626282265],[24.70610301335385,121.20372557654629],[24.70604188066196,121.20367893486898],[24.705974421416045,121.20363846641325],[24.70590826409792,121.2036021264681],[24.70584383612076,121.2035592259695],[24.705785790804907,121.20351358936692],[24.705716303950986,121.20348883310596],[24.70566288073352,121.2034320543724],[24.705603878516804,121.20338185110298],[24.70555555382169,121.203356115296],[24.70549735532701,121.20331659496605],[24.705444345239773,121.20327394084536],[24.705383819345062,121.20322338909838],[24.705327853910617,121.20317186228625],[24.705259047612888,121.20313934579694],[24.705199218803184,121.20309163293267],[24.705138593008787,121.20304801903212],[24.705084907723588,121.2030013341006],[24.705028326608673,121.20294019682457],[24.704976366766694,121.20287444888174],[24.704919403767207,121.20282509855573],[24.704860659632544,121.20277448349522],[24.70480986436642,121.2027290965985],[24.70475399392845,121.20268766259967],[24.70472194870749,121.20263061159586],[24.704671480288305,121.20257016083376],[24.70461676942206,121.20251935303219],[24.70458160602768,121.20247013767877],[24.704554154452914,121.20240677223846],[24.704514938647804,121.20234753760859],[24.704477492182992,121.20229084301052],[24.704431995825107,121.20224195965693],[24.70439426146109,121.20215842592418],[24.704410398229328,121.20214869907925],[24.704399807818,121.20215007756129],[24.70439061127128,121.20215376279977],[24.704383812796035,121.20215500694607],[24.704353231136135,121.20211835072384],[24.704310591866538,121.2020698871612],[24.704271127269045,121.2020190115871],[24.7042376538209,121.20196618728936],[24.704193987681716,121.20190224703671],[24.704157536427704,121.20182831272302],[24.704116385829515,121.20175868378941],[24.704091807346785,121.20168044235895],[24.704073102569108,121.20160819560795],[24.704009822068375,121.20154435474646],[24.703958727821416,121.20147212421413],[24.703916939664023,121.20139692904011],[24.70387167315636,121.20132189818068],[24.703833975949518,121.20125232291358],[24.70380402723996,121.20118823649274],[24.703768488388132,121.20111343402378],[24.703747343707242,121.20103184136511],[24.703721785615848,121.2009467105693],[24.703705426979383,121.20087235072793],[24.70369866277693,121.20078861142638],[24.703667702697306,121.20071465854662],[24.703646177728736,121.20063879530014],[24.703607330938024,121.20056963984769],[24.703574827554416,121.20050020881007],[24.703545716786458,121.20042942116838],[24.70352496483882,121.20036053925195],[24.70350069544954,121.20029381711836],[24.70347489023027,121.20022030792275],[24.703451480331804,121.20015006070032],[24.70342403909092,121.20007794560274],[24.70341392521453,121.19999749541043],[24.703386448488335,121.19992921303859],[24.703372182869348,121.19985216071281],[24.70333635535346,121.1997827588062],[24.703301488486602,121.19970466584405],[24.703276033257573,121.19963571705036],[24.703245418292042,121.199585917808],[24.70322370888382,121.19954417934099],[24.703195930171777,121.19948340152898],[24.703163116840283,121.19939350684557],[24.703126947595408,121.19933568541417],[24.703092679490695,121.19926720100517],[24.70306996974739,121.19920049631656],[24.703027498515745,121.19913829673328],[24.702998549720572,121.19907713992373],[24.702965582577985,121.19900394001176],[24.702932089714622,121.1989455160435],[24.702903270494325,121.19888413423747],[24.702865968223076,121.19881374389935],[24.702818904930236,121.1987358603596],[24.702793842163803,121.19866381220893],[24.702751637705365,121.1986027665094],[24.702704032855905,121.1985331780664],[24.702665629573463,121.19846829893682],[24.702626185731123,121.19838715941076],[24.70259443456346,121.19832665359489],[24.702569020614103,121.19827029301321],[24.70253800210368,121.19820758478691],[24.702507844312617,121.1981420245279],[24.70248280285793,121.19808634977822],[24.70242903918935,121.19801857315872],[24.70238601300915,121.19793877963971],[24.702349323849532,121.19786022205038],[24.702306187981062,121.19777715674553],[24.702262282275257,121.19769307215597],[24.702218315303405,121.19762592627929],[24.70220710350414,121.197589369758],[24.702163247484798,121.19754181865018],[24.702136783713357,121.1975059840188],[24.702115031558353,121.19746564877516],[24.702135224825756,121.1973952885233],[24.702117425750675,121.19736473061927],[24.70213467550201,121.19735482418189],[24.70214054312414,121.19735381584033],[24.702165948805796,121.19732615607766],[24.702154537144533,121.1973324085211],[24.70213439468331,121.1973131681868],[24.7020642293589,121.19731581881302],[24.702017920556973,121.19729123457593],[24.70201640348291,121.19727452735427],[24.702000041790168,121.19724770308413],[24.701940106296323,121.19721993221184],[24.701897273851788,121.19717109368855],[24.701842839426174,121.19714496662644],[24.70179067920291,121.19709687536393],[24.701729451979862,121.19704953452069],[24.701657742768074,121.1970108113551],[24.701594377116592,121.19696578440694],[24.70154230708548,121.19692886871938],[24.701489053341202,121.19689493925304],[24.701431012085422,121.19686353141306],[24.701370599491423,121.19682295251009],[24.701311910200722,121.19677170354399],[24.70124545063923,121.19673690696744],[24.701190846844142,121.19669752295549],[24.70113741197188,121.19664857480254],[24.70107177883107,121.1966129851038],[24.701004371355314,121.19657539202318],[24.700937352563272,121.19653847362186],[24.70092813387018,121.19652340124726],[24.700924137275276,121.1965052789798],[24.700872849693656,121.19647990687452],[24.700807963560205,121.19645383172619],[24.700742277293916,121.19643125320282],[24.700671444829247,121.19642878470438],[24.700598049048327,121.19639401810291],[24.7005847950881,121.1963969794672],[24.70057588056991,121.19639600284104],[24.70057588056991,121.19639600284104],[24.700514406596394,121.19637525865035],[24.700514831115726,121.19636855819927],[24.700514831115726,121.19636855819927],[24.700566887516914,121.1963623627147],[24.700479710980186,121.19634306822692],[24.70041204173483,121.19630535713425],[24.700390836448467,121.19631299742107],[24.700390836448467,121.19631299742107],[24.700390836448467,121.19631299742107],[24.700447855171568,121.19628060493851],[24.70043653123218,121.19627652960932],[24.70043653123218,121.19627652960932],[24.70043653123218,121.19627652960932],[24.70043192748529,121.19622825595144],[24.700341941134617,121.19622860536559],[24.70027479959918,121.1961888122063],[24.700203037107,121.19613119566476],[24.70013334652386,121.19610648812707],[24.70006027267544,121.19609599839667],[24.69997720068177,121.19608151420816],[24.69991411776791,121.19605572952781],[24.699854623871964,121.19602551063653],[24.699793712196076,121.19599701558683],[24.699730026643913,121.19598912589716],[24.69965444501271,121.19596805785467],[24.6995734842008,121.19595267082592],[24.699501447887958,121.19592480517488],[24.699425988769672,121.19589356774571],[24.699350447144383,121.1958777119331],[24.69927475125123,121.19586075696795],[24.69920445787959,121.1958354463662],[24.699131079107012,121.19582513353534],[24.699060255933137,121.19579476727681],[24.698995620312495,121.19574396132705],[24.698936413562354,121.19568522112283],[24.6988745100524,121.19564241864411],[24.69882123389961,121.19558023126942],[24.698777584589642,121.19553558606047],[24.69873648453552,121.19547435697228],[24.698676609835047,121.19543717148214],[24.69863998917471,121.19536825849096],[24.698603153782237,121.1953019419683],[24.69855496839084,121.19523105266255],[24.698537965738023,121.19516587565333],[24.698510348520525,121.1951125027767],[24.698494535771562,121.19504173340792],[24.69847027714577,121.19495861383278],[24.698446461167908,121.19489463847117],[24.69841551581212,121.19480917715555],[24.698404528474665,121.19473479302142],[24.698377972119967,121.19464986259216],[24.69835348304004,121.19456721125414],[24.69836080142334,121.19448203376267],[24.6983597968505,121.19439858771163],[24.698357593734272,121.19431674831348],[24.698345258799385,121.19423740908452],[24.69835746270056,121.19416539593016],[24.698361479834016,121.19408648216182],[24.698394733540127,121.1940237650853],[24.698401267464597,121.19396123044943],[24.698406625725795,121.19388175805253],[24.698404172709466,121.19380001614343],[24.698410880589357,121.19371938923472],[24.698423664646604,121.19363717996924],[24.698429076275247,121.19355405594385],[24.698449226611547,121.19347568295538],[24.698480677230958,121.19340296137207],[24.698481269549184,121.19331962507623],[24.698487116976377,121.19325604030217],[24.698500228312216,121.19318195990904],[24.698521204828392,121.19311522197826],[24.698526211888094,121.19303131444558],[24.698539940005166,121.19294501485969],[24.69854873396168,121.19286383818948],[24.69854245566796,121.1927742901897],[24.69854947903527,121.19268807242531],[24.69856575511563,121.1926067077587],[24.698571109622286,121.19251818722259],[24.69857846716253,121.19243097906381],[24.698574963404162,121.19234093324881],[24.698573935804475,121.19225405645355],[24.6985709412696,121.1921689042034],[24.698571089100298,121.19208710267537],[24.698564231461432,121.19199893097272],[24.69855929597402,121.19190822098777],[24.69855915224113,121.19182613920167],[24.698551519551287,121.1917600675525],[24.698542880557792,121.19169321266718],[24.69852890690408,121.19161517374911],[24.69851703278002,121.1915326826642],[24.698498671791558,121.19146171451405],[24.69847595118384,121.19138460573768],[24.698466684317737,121.19130812752041],[24.698464736344285,121.19122724858349],[24.698455076268306,121.19114637642618],[24.698432522065534,121.19106888852005],[24.698438478553822,121.19098962349615],[24.698411358649018,121.19091341768949],[24.698399673990124,121.19083350389485],[24.698387353858973,121.19076311972445],[24.69835368420711,121.19070765074738],[24.698307526480804,121.19064656942787],[24.698280093498116,121.19060707598669],[24.698284045475546,121.19058327444574],[24.698250682523796,121.1905215355742],[24.698234169153466,121.19045289660576],[24.698211478434228,121.19041878074299],[24.698228586048632,121.19041043135246],[24.698203313934965,121.19037536515643],[24.6981787654062,121.19031158835783],[24.698149314371882,121.19024826206002],[24.698135912456976,121.19016219900016],[24.698123882888446,121.19008410896845],[24.69810664569349,121.19000120722369],[24.698100330657986,121.18990974200742],[24.69809145588231,121.18981898978062],[24.698075182420975,121.18972934419952],[24.69807016665286,121.18964607742348],[24.69805723155615,121.18957939331386],[24.69802632138537,121.18954644242788],[24.698008674271982,121.18955033889372],[24.698002668769796,121.18955754259635],[24.698003147245345,121.1895588154717],[24.697980751678994,121.18954401106178],[24.697978790233957,121.18952594464456],[24.697982981926685,121.18952474890989],[24.697972339066744,121.18951220478841],[24.697973790257173,121.1895128462946],[24.697986393336134,121.18946678758205],[24.69801216645378,121.18938974091535],[24.698037441437766,121.1893212197484],[24.698049361520972,121.18925639727202],[24.698054502220288,121.18917664915115],[24.698042009577264,121.18911784209305],[24.698046708308702,121.18911461521662],[24.698057169916627,121.18911538729066],[24.698057169916627,121.18911538729066],[24.69807142801831,121.18913428691286],[24.69808289530051,121.18912722134301],[24.698084782068115,121.18904886987275],[24.69810151264141,121.18898985030897],[24.69811695073084,121.1889111883402],[24.6981527570945,121.18884673960329],[24.698198534739518,121.18877042075474],[24.69826151785221,121.18870836503956],[24.698338833209878,121.18866201325416],[24.698395487658864,121.18860732649212],[24.698456457581905,121.18856230350666],[24.698514810071874,121.1885367873837],[24.698582677601458,121.18850823512047],[24.69867179654,121.18850696320578],[24.69874999133274,121.18848853858721],[24.698831187540197,121.18846121224298],[24.69889578014825,121.188443158683],[24.698973044321903,121.18844814102667],[24.699019971460263,121.18844377804221],[24.699075427337146,121.18844318998349],[24.69912915900432,121.18844162941036],[24.69918351926759,121.1884349235935],[24.699241992170162,121.18840970509558],[24.69931064812116,121.1884000672853],[24.69935772567722,121.18838118455055],[24.69942370920985,121.18837650117294],[24.699493904310092,121.18835940168805],[24.69948241707558,121.1883398723739],[24.69949073722073,121.18831951760488],[24.69949130404707,121.18831936342039],[24.69949130404707,121.18831936342039],[24.69949130404707,121.18831936342039],[24.69949130404707,121.18831936342039],[24.69949130404707,121.18831936342039],[24.699472269586852,121.18831768198017],[24.699472269586852,121.18831768198017],[24.699458708536433,121.18832839459205],[24.69951436943895,121.18833564319627],[24.699596736454023,121.18832707101507],[24.699677046397046,121.1883411338355],[24.69972848918918,121.1883254015526],[24.699804389827406,121.1883139887719],[24.699885894113688,121.1882849190812],[24.699968324958945,121.18826578157537],[24.700056353040292,121.18824567757173],[24.700126393133196,121.1882087177228],[24.700201491246823,121.18816901898123],[24.70026718367167,121.18811879976947],[24.70033275612343,121.1880646617983],[24.700386480966692,121.18803893286454],[24.70043776717472,121.18799214659609],[24.700483375886886,121.18795670554937],[24.700526526146998,121.18789873065394],[24.700561524338788,121.18785183775579],[24.700607238666805,121.18781557025692],[24.700630484101374,121.18779315040813],[24.700636050927177,121.18778976099168],[24.700644190786,121.18779787782165],[24.700644190786,121.18779787782165],[24.700626311419995,121.18778820997791],[24.70062625762761,121.18778816298416],[24.70061738302345,121.1877953826603],[24.70061738302345,121.1877953826603],[24.70061738302345,121.1877953826603],[24.70061738302345,121.1877953826603],[24.70062346718579,121.18779238883586],[24.70062346718579,121.18779238883586],[24.700640607385512,121.18778340504622],[24.700698768768646,121.18775030999862],[24.70074631869534,121.18771736280152],[24.700798756037923,121.18768103491207],[24.70085354222887,121.18764081023852],[24.70089633843873,121.1875872566458],[24.700961676470374,121.18752665679055],[24.701028720722782,121.18746392583068],[24.701084896357784,121.18741544853724],[24.701138291939202,121.18737541191511],[24.70120048403766,121.18734705815447],[24.701267660044333,121.18729921818547],[24.70132586295082,121.18724964330823],[24.701358371436616,121.18722634930324],[24.701340196961528,121.18725166207753],[24.701323432701496,121.18727758136534],[24.70131669874727,121.18731833659227],[24.701325619632588,121.18731452542428],[24.701333476527793,121.18734907671328],[24.701395367063295,121.18727600576888],[24.70145873500469,121.18724465437542],[24.70151863450123,121.18720962932692],[24.701568067943636,121.18716191441513],[24.701628968744437,121.18708732818571],[24.701671002105442,121.18700618910366],[24.701667951776837,121.18692049007176],[24.701673486281365,121.18683481959769],[24.701701268761443,121.1867737983542],[24.70172550891368,121.18669767153213],[24.70173942261337,121.18664629573458],[24.701770384657543,121.18658015489498],[24.701798543778864,121.18650965867423],[24.701820579719232,121.18643341496812],[24.70185107897609,121.18636485793566],[24.70187835777178,121.18630221135798],[24.701891318778312,121.18625008757131],[24.701924389526866,121.1861736635391],[24.70194749524449,121.18608940659666],[24.701981053242225,121.18603909050346],[24.70202522352496,121.18599862038869],[24.702071866900067,121.18592835809903],[24.702105317295064,121.1858574888032],[24.702145069072436,121.18577790367007],[24.70216661464097,121.1856971141161],[24.70219002172281,121.185594372746],[24.70220397633109,121.18552667527516],[24.702216399054983,121.18544332976784],[24.70223300964778,121.1853886980472],[24.7022625232237,121.18531124919556],[24.702292120621653,121.18525909732368],[24.702312440468877,121.18518467887549],[24.7023348347022,121.18512794185828],[24.702374379357263,121.18508288714315],[24.70242310354118,121.18500625086118],[24.70245724221665,121.18494991169915],[24.70249146089478,121.18488177751031],[24.70251869195941,121.18481267305636],[24.702546049430193,121.18474929599867],[24.702587290143097,121.18466399106032],[24.70261674080059,121.18460834398925],[24.702659471962466,121.18455527701732],[24.702707589966973,121.18451477676761],[24.702782050973017,121.18452033508261],[24.70284473017039,121.18450353380172],[24.70292117794988,121.18448095968344],[24.702988946359444,121.18444445892207],[24.70304378760682,121.18440296391846],[24.703100684877136,121.18436310590491],[24.70315926649988,121.18432429478932],[24.703212792728273,121.18429113252498],[24.70326467534889,121.18424818871276],[24.70328629081714,121.18416461826868],[24.703287803648372,121.18408390411639],[24.70328643264834,121.18399156682062],[24.703291948768378,121.18390637992445],[24.70330940212575,121.18382298774564],[24.703315199931414,121.18374688268028],[24.703314222110375,121.18374947349369],[24.70331111627978,121.18375192652559],[24.70330647125074,121.18374587813042],[24.70330870623274,121.18374093232235],[24.703326457232578,121.18375045220338],[24.703335077926102,121.18374858758604],[24.70333147239737,121.18375086467289],[24.7033192216625,121.18374495572507],[24.70331243806777,121.18375137048835],[24.70330896608591,121.1837640578737],[24.703321224420037,121.18373586132485],[24.70336427646955,121.18369155236107],[24.70340912033982,121.1836426650443],[24.703455416514988,121.18359654800246],[24.703493014511363,121.18353076248421],[24.70351938189069,121.18344077060584],[24.70357781200074,121.18343999115044],[24.703628702258214,121.18345966144113],[24.703681884200613,121.18341845972681],[24.703723454758432,121.1833704146127],[24.703779827794747,121.18334548374716],[24.70384274280319,121.18331455340605],[24.703904833993377,121.18327041627606],[24.70397553809301,121.1832318932372],[24.704037113354698,121.18317357194161],[24.70408323145452,121.183135491941],[24.704161476936505,121.18308163294363],[24.704234490414507,121.18306854125602],[24.704294957321093,121.18303465817017],[24.7043340366756,121.18299641447878],[24.704321266792494,121.18297347137056],[24.704316078269112,121.18296292682979],[24.70431704014786,121.18295681419686],[24.70432028680407,121.18296107719769],[24.704362132051884,121.1829301531587],[24.704428069791685,121.18293757235591],[24.70447465030409,121.18293602144793],[24.704533515455243,121.18292099304757],[24.70458762562964,121.1829049183898],[24.7046538515041,121.18288367801351],[24.704722278743592,121.18287085209853],[24.704774281260505,121.18285312485632],[24.70485314701529,121.18282356248645],[24.70491403217583,121.18278017063456],[24.704971237059176,121.1827372078364],[24.70503204348021,121.18266701029434],[24.705078639373767,121.18261757748434],[24.705144642247816,121.18263705914823],[24.705190746902872,121.18264259782656],[24.70522332044556,121.18263467789679],[24.705285534592424,121.18260008115118],[24.705311618697692,121.18260981942943],[24.705342419495384,121.18262369916063],[24.705417272519462,121.18264927633828],[24.705434218259285,121.1826430417345],[24.70547492465936,121.1825941165195],[24.70552937816668,121.18257662929705],[24.705524042464198,121.18260033628935],[24.705537258645727,121.18262935405126],[24.70552309135452,121.18268098253904],[24.705520529631162,121.1826944760835],[24.705518728779687,121.18268096371685],[24.705535835909895,121.18266377100842],[24.705546605876435,121.18266484104949],[24.705567943276975,121.18265076424848],[24.705580873083907,121.18264296279071],[24.70559729920051,121.18266121368384],[24.70558887305318,121.18265279189826]]],"waypoints":[{"at":[24.705202395771792,121.18254508703512],"name":"內灣車站7:：25)"},{"at":[24.706865328445726,121.18312374848563],"name":"涼亭早餐7:58)"},{"at":[24.712921314555686,121.19009783547115],"name":"麥樹仁山登山口8:32)"},{"at":[24.715421827559418,121.19441903078811],"name":"福德正神9:18)"},{"at":[24.715958411551306,121.19830233452392],"name":"賣樹仁山三叉路10:00)"},{"at":[24.717786063270236,121.19864953605523],"name":"麥樹仁山)"},{"at":[24.71774700553419,121.19865341306438],"name":"麥樹仁山10:20)"},{"at":[24.715102272218054,121.1980264556109],"name":"麥樹仁南峰10:50)"},{"at":[24.716158447888283,121.19882952400968],"name":"下切尖石國中1056)"},{"at":[24.71141095774789,121.1985737921729],"name":"產業道路三叉路)"},{"at":[24.70879159135929,121.19997697184814],"name":"午餐11:40)"},{"at":[24.707275919658223,121.20297170623236],"name":"尖石國中11:43)"},{"at":[24.707159547583895,121.20461631639535],"name":"尖石土地公12:00)"},{"at":[24.702154537144533,121.1973324085211],"name":"北角吊橋12:13)"},{"at":[24.697972339066744,121.18951220478841],"name":"義興大橋12:30)"},{"at":[24.70432028680407,121.18296107719769],"name":"內灣老街12:47)"},{"at":[24.70558887305318,121.18265279189826],"name":"內灣車站12:50結束)"}],"name":"麥樹仁山O型（內灣-尖石國中-內灣車站）","source":"使用者上傳的原始 GPX：麥樹仁山O型（內灣-尖石國中-內灣車站）.gpx（2023/3/7 紀錄）"}</script>
+  </section>
+
+  <div class="rule"></div>
+  <section class="section reveal" id="transport" aria-labelledby="transport-title">
+    <div class="section-label" id="transport-title">交通資訊</div>
+    <div class="card-grid">
+      <article class="card">
+        <h3>🚃 去程</h3>
+        <p>10:40 <strong style="color:var(--cream)">台鐵內灣車站</strong> 集合</p>
+      </article>
+      <article class="card">
+        <h3>🚃 回程</h3>
+        <p><strong style="color:var(--cream)">台鐵內灣車站</strong></p>
+      </article>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+  <section class="section reveal" id="gear" aria-labelledby="gear-title">
+    <div class="section-label">裝備清單</div><h2 id="gear-title">必備裝備</h2>
+    <ul class="gear-list">
+      <li>💧 水</li><li>🍱 午餐 ＆ 行動糧</li><li>☕ 杯子（會燒熱水泡茶喝咖啡）</li>
+      <li>🔦 頭燈（含備用電池）</li><li>🧢 帽子（防曬）</li><li>🧥 雨衣、雨褲</li><li>👟 登山鞋（建議）</li>
+      <li>🗺️ 離線地圖與已核對的 GPX</li><li>🔋 手機與行動電源</li>
+    </ul>
+  </section>
+
+  <div class="rule"></div>
+  <section class="section reveal" id="weather" aria-labelledby="weather-title">
+    <div class="section-label">天氣預報</div>
+    <h2 class="alert" id="weather-title">若降雨機率超過30%，則順延至下一週</h2>
+    <div class="weather-card"><div class="weather-icon" aria-hidden="true">⛅</div><div class="weather-info">
+      <h3>中央氣象署 — 尖石鄉天氣預報</h3>
+      <a href="https://www.cwa.gov.tw/V8/C/W/Town/Town.html?TID=1000412" target="_blank" rel="noopener noreferrer">尖石鄉（山區）→</a>
+    </div></div>
+  </section>
+  </main>
+
+  <div class="rule"></div>
+  <section class="join reveal" id="join" aria-labelledby="join-title">
+    <h2 id="join-title">報名</h2>
+    <a href="https://line.me/ti/g/V4rWV63p4K" target="_blank" rel="noopener noreferrer" class="join-btn">點我加入LINE群組<br>即報名完成</a>
+  </section>
+
+  <script>
+  (function () {
+    'use strict';
+    // Optional entrance animation. Content stays available with no script support.
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('animating');
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal, .tl-item').forEach(function (el) { observer.observe(el); });
+      window.addEventListener('beforeprint', function () { document.documentElement.classList.remove('animating'); });
+    }
+  })();
+  </script>
+  <script>
+  (function () {
+    'use strict';
+    // The screenshot's Toucheng coordinates are NOT this hike's route.
+    // Only real GPX coordinates may populate route-data. Never connect separate segments.
+    // Station coordinate source: TDX, TRA-1208; see the original page's source record.
+    var STATION = [24.70535, 121.18255];
+    var REFERENCE = 'https://hiking.biji.co/index.php?act=gpx_detail&id=1670279&q=trail';
+    var container = document.getElementById('route-map');
+    var status = document.getElementById('map-status');
+    var input = document.getElementById('gpx-file');
+    var fit = document.getElementById('map-fit');
+    var reset = document.getElementById('map-reset');
+    var save = document.getElementById('map-save');
+    var dataNode = document.getElementById('route-data');
+    if (!container || !status || !input || !dataNode) return;
+    var fallbackHTML = container.innerHTML;
+    var map = null, routeLayer = null, importVersion = 0;
+    var basemapFailed = false, topo = null, streets = null;
+    var route = { segments: [], waypoints: [], name: '', source: '' };
+    function hasRoute() { return route.segments.length > 0; }
+    function setStatus(message, error) {
+      status.textContent = message;
+      status.dataset.error = error ? 'true' : 'false';
+    }
+    function controls() {
+      fit.hidden = reset.hidden = save.hidden = !hasRoute();
+    }
+    function routeMessage() {
+      if (!hasRoute()) return '尚未載入山徑航跡，可匯入 GPX 顯示紅色路線。';
+      return '';
+    }
+    function syncData() {
+      dataNode.textContent = JSON.stringify(route).replace(/</g, '\\u003c');
+      controls();
+    }
+    function coordinate(lat, lon) {
+      return typeof lat === 'number' && typeof lon === 'number' &&
+        Number.isFinite(lat) && Number.isFinite(lon) &&
+        lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+    }
+    function validData(candidate) {
+      if (!candidate || !Array.isArray(candidate.segments) || candidate.segments.length > 10000) return false;
+      var count = 0;
+      if (!candidate.segments.every(function (segment) {
+        return Array.isArray(segment) && segment.length >= 2 && segment.every(function (p) {
+          return ++count <= 100000 && Array.isArray(p) && coordinate(p[0],p[1]);
+        });
+      })) return false;
+      return Array.isArray(candidate.waypoints) && candidate.waypoints.length <= 2000 && candidate.waypoints.every(function (w) {
+        return w && Array.isArray(w.at) && coordinate(w.at[0], w.at[1]) && typeof w.name === 'string';
+      });
+    }
+    try {
+      var embedded = JSON.parse(dataNode.textContent);
+      if (validData(embedded)) {
+        route = { segments: embedded.segments, waypoints: embedded.waypoints,
+          name: typeof embedded.name === 'string' ? embedded.name : 'GPX 航跡',
+          source: typeof embedded.source === 'string' ? embedded.source : '' };
+      }
+    } catch (e) { /* Keep the station, not an invented route, when no GPX is embedded. */ }
+    var exportTemplate = null;
+    // Capture the clean DOM before Leaflet adds temporary map elements.
+    controls();
+    exportTemplate = document.documentElement.cloneNode(true);
+    exportTemplate.classList.remove('animating');
+    function popup(title, lines, withReference) {
+      var box = document.createElement('div');
+      var heading = document.createElement('strong'); heading.textContent = title; box.appendChild(heading);
+      lines.forEach(function (text) {
+        var row = document.createElement('div'); row.textContent = text; box.appendChild(row);
+      });
+      if (withReference) {
+        var a = document.createElement('a'); a.href = REFERENCE;
+        a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = '查看參考 GPX ↗'; box.appendChild(a);
+      }
+      return box;
+    }
+    function fitRoute() {
+      if (!map) return;
+      if (hasRoute() && routeLayer) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [28,30], paddingBottomRight: [75,60], maxZoom: 16 });
+      else map.setView(STATION, 14);
+    }
+    function drawRoute() {
+      if (!map) return;
+      if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+      if (!hasRoute()) return;
+      routeLayer = L.featureGroup();
+      route.segments.forEach(function (segment) {
+        L.polyline(segment, { color: '#1a1a14', weight: 8, opacity: 0.5, interactive: false }).addTo(routeLayer);
+        L.polyline(segment, { color: '#e53935', weight: 4, opacity: 0.95, interactive: false }).addTo(routeLayer);
+      });
+      // Every gold waypoint comes from an actual GPX waypoint, not guessed landmarks.
+      route.waypoints.forEach(function (w) {
+        L.circleMarker(w.at, { radius: 4, color: '#1a1a14', weight: 2, fillColor: '#d4a83a', fillOpacity: 1 })
+          .bindPopup(popup(w.name || 'GPX 路點', ['原始 GPX 路點名稱；其中時間不是本次行程時間。'], false)).addTo(routeLayer);
+      });
+      routeLayer.addTo(map);
+      fitRoute();
+    }
+    function initMap() {
+      if (map || !window.L) return;
+      container.innerHTML = '';
+      map = L.map(container, { scrollWheelZoom: false, dragging: true, zoomSnap: 0.25,
+        zoomControl: true }).setView(STATION,14);
+      map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer">Leaflet</a>');
+      topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        subdomains: 'abc', maxZoom: 17,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 貢獻者, SRTM | &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener noreferrer">OpenTopoMap</a> (CC-BY-SA)'
+      });
+      streets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 貢獻者'
+      });
+      var topoLoaded = false, topoErrors = 0, streetErrors = 0, streetLoaded = false;
+      topo.on('tileload', function () { topoLoaded = true; basemapFailed = false; });
+      topo.on('tileerror', function () {
+        topoErrors += 1;
+        if (!topoLoaded && topoErrors >= 4 && map.hasLayer(topo)) {
+          map.removeLayer(topo); streets.addTo(map);
+          setStatus('地形圖暫時無法載入，已切換街道圖。' + routeMessage(), true);
+        }
+      });
+      streets.on('tileload', function () { streetLoaded = true; basemapFailed = false; });
+      streets.on('tileerror', function () {
+        streetErrors += 1;
+        if (!streetLoaded && streetErrors >= 4) {
+          basemapFailed = true;
+          setStatus('底圖暫時無法載入；' + (hasRoute() ? '紅色航跡仍可檢視。' : '目前僅標示內灣車站。'),true);
+        }
+      });
+      // Terrain is the default, matching the supplied screenshot.
+      topo.addTo(map);
+      L.control.layers({ '地形圖': topo, '街道圖': streets }, null, { position: 'topright' }).addTo(map);
+      drawRoute();
+      L.circleMarker(STATION, { radius: 7, color: '#b8972a', weight: 3, fillColor: '#f5f0e8', fillOpacity: 1 })
+        .bindTooltip('起終點', { permanent: true, direction: 'right', offset: [10,0], className: 'route-start-label' })
+        .bindPopup(popup('內灣車站', ['10:40 集合', '新竹縣橫山鄉內灣村中正路 6 號'], true)).addTo(map);
+      if ('ResizeObserver' in window) new ResizeObserver(function () { if (map) { map.invalidateSize(); fitRoute(); } }).observe(container);
+      container.addEventListener('focus', function () { if (map) map.scrollWheelZoom.enable(); });
+      container.addEventListener('blur', function () { if (map) map.scrollWheelZoom.disable(); });
+      setStatus(routeMessage(),false);
+    }
+    function offline() {
+      if (map) { map.remove(); map = null; routeLayer = null; }
+      if (!hasRoute()) {
+        container.innerHTML = fallbackHTML;
+        var text = document.getElementById('map-loading-text');
+        if (text) text.textContent = '地形圖需要網路連線；可先匯入 GPX 查看航跡。';
+        return;
+      }
+      container.innerHTML = '';
+      var ns = 'http://www.w3.org/2000/svg';
+      function node(tag, attrs, text) {
+        var el = document.createElementNS(ns,tag);
+        Object.keys(attrs).forEach(function (key) { el.setAttribute(key,attrs[key]); });
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      var svg = node('svg',{viewBox:'0 0 760 420',class:'map-svg',role:'img','aria-label':'GPX 航跡預覽，無地形底圖'});
+      var minLat=Infinity,maxLat=-Infinity,minLon=Infinity,maxLon=-Infinity;
+      route.segments.forEach(function (segment) { segment.forEach(function (p) {
+        minLat=Math.min(minLat,p[0]);maxLat=Math.max(maxLat,p[0]);minLon=Math.min(minLon,p[1]);maxLon=Math.max(maxLon,p[1]);
+      }); });
+      var cosine = Math.cos((minLat+maxLat)/2*Math.PI/180);
+      var width=Math.max((maxLon-minLon)*cosine,0.00001),height=Math.max(maxLat-minLat,0.00001);
+      var scale=Math.min(650/width,280/height),x0=(760-width*scale)/2,y0=(420-height*scale)/2;
+      function xy(p) { return [(p[1]-minLon)*cosine*scale+x0,(maxLat-p[0])*scale+y0]; }
+      route.segments.forEach(function (segment) {
+        var points=segment.map(function (p) { return xy(p).map(function (n) { return n.toFixed(2); }).join(','); }).join(' ');
+        svg.appendChild(node('polyline',{points:points,fill:'none',stroke:'#1a1a14','stroke-width':'7','stroke-linecap':'round','stroke-linejoin':'round'}));
+        svg.appendChild(node('polyline',{points:points,fill:'none',stroke:'#e53935','stroke-width':'3.5','stroke-linecap':'round','stroke-linejoin':'round'}));
+      });
+      route.waypoints.forEach(function (w) { var q=xy(w.at); var c=node('circle',{cx:q[0],cy:q[1],r:4,fill:'#d4a83a',stroke:'#1a1a14','stroke-width':2}); c.appendChild(node('title',{},w.name));svg.appendChild(c); });
+      svg.appendChild(node('text',{x:20,y:28,fill:'#f5f0e8','font-size':13},'GPX 航跡預覽・無地形底圖'));
+      container.appendChild(svg);
+    }
+    function byName(parent,name) { return Array.from(parent.getElementsByTagNameNS('*',name)); }
+    function parseGpx(text,filename) {
+      if (/<!DOCTYPE|<!ENTITY/i.test(text)) throw new Error('請使用不含外部 XML 宣告的一般 GPX 檔。');
+      var xml = new DOMParser().parseFromString(text,'application/xml');
+      if (xml.getElementsByTagName('parsererror').length || xml.documentElement.localName !== 'gpx') throw new Error('檔案不是有效的 GPX，請重新選擇。');
+      var count=0;
+      function point(el) {
+        var a=el.getAttribute('lat'),b=el.getAttribute('lon');
+        if (a === null || b === null || !a.trim() || !b.trim() || !coordinate(Number(a),Number(b))) throw new Error('GPX 包含無效座標，請檢查後重新匯入。');
+        return [Number(a),Number(b)];
+      }
+      var containers=byName(xml,'trkseg').map(function (s) { return byName(s,'trkpt'); });
+      if (!containers.length) containers=byName(xml,'rte').map(function (s) { return byName(s,'rtept'); });
+      var segments=containers.map(function (nodes) { return nodes.map(function (el) {
+        if (++count>100000) throw new Error('GPX 超過 100,000 個路點，請先簡化後再匯入。');
+        return point(el);
+      }); }).filter(function (seg) { return seg.length>=2; });
+      if (!segments.length) throw new Error('GPX 沒有可繪製的航跡，請使用含 track 或 route 的檔案。');
+      var waypoints=byName(xml,'wpt').slice(0,2000).map(function (w) { var name=byName(w,'name')[0];return {at:point(w),name:name?name.textContent:'GPX 路點'}; });
+      var track=byName(xml,'trk')[0] || byName(xml,'rte')[0];
+      var title=track && Array.from(track.children).find(function (el) { return el.localName==='name'; });
+      return {segments:segments,waypoints:waypoints,name:title&&title.textContent.trim()?title.textContent.trim():filename,source:'使用者匯入的 GPX'};
+    }
+    input.addEventListener('change',async function () {
+      var file=input.files&&input.files[0];if(!file)return;
+      var version=++importVersion;
+      try {
+        if(file.size>10*1024*1024)throw new Error('GPX 超過 10 MB，請先簡化後再匯入。');
+        setStatus('正在讀取 GPX…',false);
+        var parsed=parseGpx(await file.text(),file.name);
+        if(version!==importVersion)return;
+        route=parsed;syncData();
+        if(window.L){initMap();drawRoute();}else offline();
+        setStatus(routeMessage()+(map?'':'目前離線顯示，無地形底圖。')+' 使用「另存含航跡網頁」可將路線保存在 HTML 中。',basemapFailed);
+      }catch(e){if(version===importVersion)setStatus(e.message||'無法讀取 GPX，請重試。',true);}
+      input.value='';
+    });
+    fit.addEventListener('click',function(){if(map)fitRoute();else if(hasRoute())offline();});
+    reset.addEventListener('click',function(){
+      ++importVersion;route={segments:[],waypoints:[],name:'',source:''};syncData();
+      if(map){drawRoute();fitRoute();}else offline();
+      input.value='';setStatus(routeMessage(),false);
+    });
+    save.addEventListener('click',function(){
+      if(!hasRoute()||!exportTemplate)return;
+      var clone=exportTemplate.cloneNode(true);
+      clone.querySelector('#route-data').textContent=JSON.stringify(route).replace(/</g,'\\u003c');
+      clone.querySelector('#map-status').textContent=routeMessage();
+      var blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+      var url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download='index.html';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},30000);
+    });
+    controls();setStatus(routeMessage(),false);
+    var script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+    script.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    script.crossOrigin='anonymous';
+    script.onload=function(){try{initMap();}catch(e){offline();setStatus(hasRoute()?routeMessage()+' 地形底圖暫時無法載入。':'地形圖暫時無法載入；可匯入 GPX 預覽航跡。',true);}};
+    script.onerror=function(){offline();setStatus(hasRoute()?routeMessage()+' 目前離線顯示，無地形底圖。':'地形圖暫時無法載入；可匯入 GPX 預覽航跡。',true);};
+    document.head.appendChild(script);
+  })();
+
+  </script>
+
+</body>
+</html>
